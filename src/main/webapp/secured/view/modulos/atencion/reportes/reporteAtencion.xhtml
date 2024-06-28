@@ -1,0 +1,255 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">REPORTES > PEDIDOS EN MESA</h2>
+		
+		
+		<h:panelGrid columns="12" id="gridOpc" >
+			<p:selectOneButton value="#{reporteAtencionBean.estado}" unselectable="false">
+				<f:selectItem itemLabel="Cobrados" itemValue="Cobrado" />
+				<f:selectItem itemLabel="Eliminados" itemValue="Eliminado" />
+				<p:ajax update=":form:idTableEmpleado :form:gridOpc" listener="#{reporteAtencionBean.calcularTotalReporte}" />
+			</p:selectOneButton> 
+			
+			Del: 
+			<p:datePicker value="#{reporteAtencionBean.fechaIni}"> 
+				<p:ajax update=":form:idTableEmpleado :form:totalRep :form:gridOpc" listener="#{reporteAtencionBean.calcularTotalReporte}"/>
+			</p:datePicker>
+			Al:
+			<p:datePicker value="#{reporteAtencionBean.fechaFin}"> 
+				<p:ajax update=":form:idTableEmpleado :form:totalRep :form:gridOpc" listener="#{reporteAtencionBean.calcularTotalReporte}"/>
+			</p:datePicker>
+						
+			
+			<h:outputText value="Crédito: " />
+			<p:selectOneMenu value="#{reporteAtencionBean.credito}"> 
+				<f:selectItem itemLabel="[--TODOS--]" itemValue="#{null}" />
+				<f:selectItem itemLabel="No" itemValue="#{false}" />
+				<f:selectItem itemLabel="Si" itemValue="#{true}" />
+				<p:ajax update=":form:idTableEmpleado :form:totalRep :form:totalCreditoRep" listener="#{reporteAtencionBean.calcularTotalReporte}"/>
+			</p:selectOneMenu>
+			
+			<h:outputText style="margin-left: 30px" value="TOTAL GENERAL: " />
+			<h:outputText style="color:blue;font-weight: bold;" id="totalRep" value="#{reporteAtencionBean.totalReporte}" >
+                <f:convertNumber type="currency" currencySymbol=""/>
+            </h:outputText>
+            
+            <h:outputText style="margin-left: 30px" value="TOTAL CRÉDITO: " />
+			<h:outputText style="color:blue;font-weight: bold;" id="totalCreditoRep" value="#{reporteAtencionBean.totalCreditoReporte}" >
+                <f:convertNumber type="currency" currencySymbol=""/>
+            </h:outputText>
+            
+            
+            <p:commandButton value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{reporteAtencionBean.procesarExcel}" icon="pi pi-file-excel" styleClass="ui-button-success" style="margin-left:20px">
+	           <p:fileDownload value="#{reporteAtencionBean.fileDes}"/> 
+	      	</p:commandButton>
+			
+		</h:panelGrid> 
+		
+		<p:dataTable var="atencion" id="idTableEmpleado" value="#{reporteAtencionBean.lstAtencionLazy}" widgetVar="atencionTable" rowIndexVar="row" paginator="true" rows="20" size="small"
+			emptyMessage="No se encontraron resultados."	paginatorPosition="bottom" rowKey="#{atencion.id}" selection="#{reporteAtencionBean.atencionMesaSelected}" selectionMode="single">
+			<p:ajax event="rowSelect" listener="#{reporteAtencionBean.verDetalles}" update="dialogAtencion" oncomplete="PF('atencionDialog').show();" />
+		
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>Lista de Pedidos #{reporteAtencionBean.estado}</span>
+				</div>
+			</f:facet>
+			<p:column width="25px">
+	                      #{row +1}
+	        </p:column>
+	        
+	        <p:column headerText="Cliente" sortBy="#{atencion.documentoVenta.razonSocial}" filterBy="#{atencion.documentoVenta.razonSocial}" filterMatchMode="contains">
+                <h:outputText value="#{atencion.documentoVenta.razonSocial}" />
+            </p:column>
+            
+            <p:column headerText="DNI/RUC" sortBy="#{atencion.documentoVenta.ruc}" filterBy="#{atencion.documentoVenta.ruc}" filterMatchMode="contains">
+				<h:outputText value="#{atencion.documentoVenta.ruc}" />
+			</p:column>
+			
+			<p:column headerText="Tipo documento" sortBy="#{atencion.tipoDocumento.descripcion}" filterMatchMode="contains">
+				<h:outputText value="#{atencion.tipoDocumento.descripcion}" />
+			</p:column>
+			
+			<p:column headerText="Serie-Número" sortBy="#{atencion.tipoDocumento.descripcion}" filterMatchMode="contains">
+				<h:outputText value="#{atencion.documentoVenta.serie} - #{atencion.documentoVenta.numero}" />
+			</p:column>
+	        
+			<p:column headerText="Piso" sortBy="#{atencion.piso.nombre}" filterMatchMode="contains" rendered="false">
+				<h:outputText value="#{atencion.piso.nombre}" />
+			</p:column>
+			<p:column headerText="Número de mesa" sortBy="#{atencion.numMesa}" filterMatchMode="contains" style="text-align:center">
+				<h:outputText value="#{atencion.numMesa}" />
+			</p:column>
+			
+			<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+				<h:outputText value="#{reporteAtencionBean.calcularTotalVistaReporte(atencion)}" >   
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</p:column>
+			
+			<p:column headerText="Crédito" filterMatchMode="contains" style="text-align:center">
+				<h:outputText value="#{atencion.credito eq true?'SI':'NO'}" />
+			</p:column>
+
+			<p:column headerText="Fecha Cobro" filterMatchMode="contains" sortBy="#{atencion.fechaCobro}">
+				<h:outputText value="#{reporteAtencionBean.convertirHora(atencion.fechaCobro)}" />
+			</p:column>
+			
+			<p:column headerText="Tipo Pago" filterMatchMode="contains" sortBy="#{atencion.tipoPago}">
+				<h:outputText value="#{atencion.tipoPago} : #{atencion.monto}" rendered="#{atencion.monto gt 0}" /> <br />
+				<h:outputText value="#{atencion.tipoPago2} : #{atencion.monto2}" rendered="#{atencion.monto2 gt 0}" />
+				
+			</p:column>
+			
+			<p:column headerText="Mesero(a)" filterMatchMode="contains" sortBy="#{atencion.usuario.persona.nombres}">
+				<h:outputText value="#{atencion.usuario.persona.nombres} #{atencion.usuario.persona.apellidos}" />
+			</p:column>
+		</p:dataTable>
+		
+		<p:contextMenu for="idTableEmpleado">
+            <p:menuitem value="Cobrar Pedido" icon="pi pi-dollar" oncomplete="PF('cobrarDialog').show()" update="dialogCobrar" actionListener="#{reporteAtencionBean.verDetalles}"/>
+            <p:menuitem value="Eliminar Pedido" icon="pi pi-trash" oncomplete="PF('eliminarPedido').show()"/>
+        </p:contextMenu>
+		
+	</h:form>
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogAtencion" header="#{reporteAtencionBean.atencionMesaSelected.piso.nombre}: #{reporteAtencionBean.numMesaSelected}" widgetVar="atencionDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialog">
+			<h:panelGrid columns="3"> 
+				<h:outputText style="" value="TOTAL: " />
+				<h:outputText style="color:blue;font-weight: bold; " value="#{reporteAtencionBean.totalDetalle}" >
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+	            <p:commandButton value="PRE-CUENTA"   icon="pi pi-file-pdf" action="#{reporteAtencionBean.exportarPDF}" ajax="false" /> 
+	            
+			</h:panelGrid>
+			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{reporteAtencionBean.lstDetalleAtencionMesaSelected}" rowIndexVar="row" rows="15" paginator="true" size="small"
+	    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	             
+	                    <span>LISTA DE PEDIDOS</span>
+	                </div>
+	            </f:facet>
+	
+	            <p:column headerText="Descripcion" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.plato.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.precioUnitario}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains">
+            
+            		<h:outputText value="#{detalle.cantidad}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>	                    
+	            </p:column>
+	            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.total}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+	                <p:cellEditor>  
+                        <f:facet name="output">
+                            <h:outputText value="#{detalle.observacion}"/>
+                        </f:facet>  
+                        <f:facet name="input">
+                            <h:inputText value="#{detalle.observacion}" style="width: 100%; height: 100%;"/>
+                        </f:facet>  
+                    </p:cellEditor>
+	            </p:column>
+	    	   
+	        </p:dataTable>
+		</h:form>
+	</p:dialog>
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogCobrar" header="Cobrar: #{reporteAtencionBean.numMesaSelected}" widgetVar="cobrarDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialogCobrar">
+			<h:panelGrid columns="2"> 
+			
+				<h:outputText style="" value="Cliente: " />
+				<h:outputText style="color:blue;font-weight: bold; " value="#{reporteAtencionBean.atencionMesaSelected.nombreCliente}" />
+				
+				<h:outputText style="" value="DNI / RUC: " />
+				<h:outputText style="color:blue;font-weight: bold; " value="#{reporteAtencionBean.atencionMesaSelected.dniRuc}" />
+			
+				<h:outputText style="" value="Monto: " />
+				<h:outputText style="color:blue;font-weight: bold; " value="#{reporteAtencionBean.totalDetalle}" >
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+	            
+	            <h:outputText value="Tipo Pago: " />
+				<p:selectOneMenu value="#{reporteAtencionBean.atencionMesaSelected.tipoPago}">
+					<f:selectItem itemLabel="Efectivo" itemValue="Efectivo" />
+					<f:selectItem itemLabel="POS-YAPE" itemValue="POS-YAPE" />
+					<f:selectItem itemLabel="POS-PLIN" itemValue="POS-PLIN" />
+					<f:selectItem itemLabel="POS-T DEBITO" itemValue="POS-T DEBITO" />
+					<f:selectItem itemLabel="POS-T CREDITO" itemValue="POS-T CREDITO" />
+				</p:selectOneMenu>
+	            
+	            <p:commandButton value="Cobrar" action="#{reporteAtencionBean.updatePedido}" update=":form:idTableEmpleado :form:gridOpc" 
+	            	onstart="PF('blockUIWidgetCobrar').block();" oncomplete="PF('blockUIWidgetCobrar').unblock(); PF('cobrarDialog').hide()"/> 
+	            
+			</h:panelGrid>
+			
+			
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI target="dialogCobrar" widgetVar="blockUIWidgetCobrar">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	
+	<pe:blockUI target="idConfirmarCobro" widgetVar="blockUIWidget">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+    <pe:blockUI target="idEliminarPedido" widgetVar="blockUIWidget">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+	<p:confirmDialog id="idConfirmarCobro" widgetVar="confirmarCobro" showEffect="fade" width="300" message="¿Deseas cobrar el crédito?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update=":form:idTableEmpleado :form:totalRep :form:gridOpc" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock(); PF('confirmarCobro').hide()" actionListener="#{reporteAtencionBean.updatePedido}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('confirmarCobro').hide()" />
+    </p:confirmDialog>
+    
+    <p:confirmDialog id="idEliminarPedido" widgetVar="eliminarPedido" showEffect="fade" width="300" message="¿Deseas eliminar el pedido?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update=":form:idTableEmpleado :form:totalRep :form:gridOpc" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock(); PF('eliminarPedido').hide()" actionListener="#{reporteAtencionBean.eliminarPedido}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('eliminarPedido').hide()" />
+    </p:confirmDialog>
+    
+    <script type="text/javascript">
+
+        function hacerClick(elementName) {
+            element = document.getElementById(elementName);
+            element.click();
+        }
+
+        function modificarPlato(xhr, status, args) {
+            if (!args.noEsValido) {
+                PF('platoDialog').show();
+            } 
+        }
+    </script> 
+	
+</ui:composition>

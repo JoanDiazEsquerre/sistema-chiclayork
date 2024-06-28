@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="cuentaDetallada" language="groovy" pageWidth="220" pageHeight="400" columnWidth="220" leftMargin="0" rightMargin="0" topMargin="10" bottomMargin="10" uuid="f7cc8725-31db-46d6-9e69-d3629a2409fe">
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="RUTAIMAGEN" class="java.lang.Object"/>
+	<parameter name="PATTERN" class="java.lang.Object"/>
+	<parameter name="TOTAL" class="java.lang.String"/>
+	<parameter name="MESA" class="java.lang.String"/>
+	<field name="Producto" class="java.lang.String"/>
+	<field name="Cantidad" class="java.math.BigDecimal"/>
+	<field name="PrecioUnitario" class="java.math.BigDecimal"/>
+	<field name="Importe" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="34" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="1572eb41-7ee8-4225-ab4e-c8d67b021784" x="0" y="-8" width="220" height="16"/>
+				<textElement textAlignment="Center">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CHICLAYORK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4d21d515-b40e-4390-9198-7c3f6db8d8d9" x="118" y="25" width="19" height="9"/>
+				<textElement textAlignment="Center">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CANT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9319505f-b373-4de4-b521-f17a2d62a608" x="3" y="25" width="115" height="9"/>
+				<textElement textAlignment="Left">
+					<font size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[ARTICULO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="2c1e7e5a-b9de-42b7-83ab-84e5f2b1fb8e" x="137" y="25" width="36" height="9"/>
+				<textElement textAlignment="Center">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[P.U]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="bb4cd30f-109a-460c-8389-127a102636ab" x="3" y="19" width="218" height="8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ebc9b0ca-15f9-4d35-b2b9-b4c102a8ee21" x="173" y="25" width="41" height="9"/>
+				<textElement textAlignment="Center">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[IMPORTE]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="49d95860-c1be-45ea-885d-ffebda36b250" x="4" y="6" width="100" height="13"/>
+				<textElement/>
+				<textFieldExpression><![CDATA["MESA: "+$P{MESA}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="12">
+			<textField>
+				<reportElement uuid="506dc6e2-5cd4-4c52-8b2f-015ec3176da1" x="118" y="1" width="19" height="11"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Cantidad}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="24a80c87-348a-4755-b51c-86d77f87f54e" x="137" y="1" width="36" height="11"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PrecioUnitario}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="32c5710b-fb74-43ad-8b2f-55f063f8b6f1" x="3" y="1" width="115" height="11"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Producto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="28f12e5a-52c1-497c-b3e3-1686007977b8" x="176" y="1" width="36" height="11"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Importe}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="27">
+			<staticText>
+				<reportElement uuid="d34fa103-e7b3-46e2-8e3a-87e7f8ca38c3" x="3" y="12" width="65" height="15"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[TOTAL:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="afd1d2ac-1f04-47c3-b6e6-6c64d812e0e6" x="131" y="11" width="78" height="16"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["S/ "+$P{TOTAL}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="883bccb1-51f5-45e8-8b2e-5ca1442c2c11" x="3" y="3" width="219" height="8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

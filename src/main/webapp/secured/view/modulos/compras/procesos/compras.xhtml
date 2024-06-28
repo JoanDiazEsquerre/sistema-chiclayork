@@ -1,0 +1,162 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">COMPRAS > COMPRAS</h2>
+		<p:tabView id="tabView">
+			<p:tab title="Lista de compras">
+			
+				<h:panelGrid columns="5" id="gridOpc" > 
+					<p:selectOneButton value="#{compraBean.estado}" unselectable="false">
+						<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+						<f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+						<p:ajax update=":form:tabView:idTableCompra"  />
+					</p:selectOneButton> 
+					
+					Del: 
+					<p:datePicker value="#{compraBean.fechaIni}"> 
+						<p:ajax update=":form:tabView:idTableCompra" />
+					</p:datePicker>
+					Al:
+					<p:datePicker value="#{compraBean.fechaFin}"> 
+						<p:ajax update=":form:tabView:idTableCompra" />
+					</p:datePicker>
+					
+				</h:panelGrid> 
+			
+				<p:dataTable var="compra" id="idTableCompra" value="#{compraBean.lstCompraLazy}" widgetVar="compraTable" rowIndexVar="row" paginator="true" rows="15" size="small" style="width:70%"
+					emptyMessage="No se encontraron compras." paginatorPosition="bottom" rowKey="#{compra.id}" selection="#{compraBean.compraSelected}" selectionMode="single"
+					lazy="true">
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Compras</span>
+						</div>
+					</f:facet>
+					<p:ajax event="rowSelect" update=":formDialog :dialogCompra" listener="#{compraBean.updateCompra()}" oncomplete="PF('compraNewDialog').show();" />
+		
+					<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		        	
+					<p:column headerText="Fecha" filterMatchMode="contains">
+						<h:outputText value="#{compra.fecha}" > 
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{compra.total}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					
+					<p:column headerText="Usuario"  filterMatchMode="contains">
+						<h:outputText value="#{compra.usuario.persona.nombres} #{compra.usuario.persona.apellidos}" />
+					</p:column>
+					
+				</p:dataTable>
+				
+			</p:tab>
+			
+			<p:tab title="Registrar nueva compra">
+				<h:panelGrid columns="3"> 
+					<h:outputLabel value="Fecha: " />
+					<p:datePicker value="#{compraBean.fecha}" style="margin:5px;">
+						<p:ajax update="txt_fecha_Formated" />
+					</p:datePicker>
+					<h:outputText style="font-size: 22px; font-weight: bold; color: #547E11;" id="txt_fecha_Formated" value="#{compraBean.fecha}">
+						<f:convertDateTime pattern="EEEEE, dd MMMM yyyy" />
+					</h:outputText>
+				</h:panelGrid>
+				
+				<h:panelGrid columns="2"> 
+					<h:outputLabel value="Producto: " />
+					<p:inputText id="producto" value="#{compraBean.producto}" style="margin:10px"/>
+					
+					<h:outputLabel value="Precio: " />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","  id="precio" value="#{compraBean.precio}" style="margin:10px"/> 
+					
+					<p:commandButton value="Agregar Item" actionListener="#{compraBean.agregarItem()}" update=":form:tabView:idTableDetalle :form:tabView:producto :form:tabView:precio"/>
+					<p:commandButton value="Guardar" actionListener="#{compraBean.saveCompra()}" update=":form:tabView:idTableCompra :form:tabView:idTableDetalle"/>					
+				
+				</h:panelGrid>
+				
+				<p:dataTable id="idTableDetalle" var="detalle" value="#{compraBean.lstDetalleCompra}" style="width:70%" rowIndexVar="row" paginator="true" rows="15" size="small" 
+				emptyMessage="No se agregaron detalles." selection="#{compraBean.detalleCompraSelected}">
+				
+					<p:column headerText="Nro" width="25px">
+                      #{row +1}
+        			</p:column>
+        			
+		            <p:column headerText="Producto">
+		                <h:outputText value="#{detalle.descripcionProducto}" />
+		            </p:column>
+		
+		            <p:column headerText="Precio">
+		                <h:outputText value="#{detalle.precio}" />
+		            </p:column>
+		            
+		            <p:column width="10%" filterMatchMode="contains">
+						<p:commandButton action="#{compraBean.deleteDetalle(detalle)}" icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update=":form:tabView:idTableDetalle"/>
+					</p:column>
+		
+		        </p:dataTable>
+			</p:tab>
+			
+		</p:tabView>
+	</h:form>
+	
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogCompra" header="MODIFICAR COMPRA: #{compraBean.fechaVista}" widgetVar="compraNewDialog" resizable="false" closable="true"
+		appendTo="@(body)"  width="50%" height="550px">
+		<h:form id="formDialog">
+	      
+			<h:panelGrid columns="2" > 
+				<h:outputLabel value="Producto: " />
+				<p:inputText id="productoDetalle" value="#{compraBean.productoDialog}" style="margin:10px"/>
+				
+				<h:outputLabel value="Precio: " />
+				<p:inputNumber decimalSeparator="." thousandSeparator=","  id="precioDetalle" value="#{compraBean.precioDialog}" style="margin:10px"/> 
+				
+				<p:commandButton value="Agregar Item" actionListener="#{compraBean.agregarItemDialog()}" update=":formDialog:idTableDetalleDialog :formDialog:productoDetalle :formDialog:precioDetalle :form:tabView:idTableCompra"/>
+			
+			</h:panelGrid>
+			
+			<p:dataTable id="idTableDetalleDialog" var="detalle" value="#{compraBean.lstDetalleCompraSelected}"  rowIndexVar="row" paginator="true" rows="15" size="small" 
+			emptyMessage="No se agregaron detalles." selection="#{compraBean.detalleCompraSelected}" >
+			
+				<p:column headerText="Nro" width="25px">
+                     #{row +1}
+       			</p:column>
+       			
+	            <p:column headerText="Producto">
+	                <h:outputText value="#{detalle.descripcionProducto}" />
+	            </p:column>
+	
+	            <p:column headerText="Precio">
+	                <h:outputText value="#{detalle.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column width="10%" filterMatchMode="contains">
+					<p:commandButton  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" action="#{compraBean.deleteDetalleSelected(detalle)}" update=":form:tabView:idTableCompra :formDialog:idTableDetalleDialog"/>
+				</p:column>
+	
+	        </p:dataTable>
+
+			
+		</h:form>
+	</p:dialog>
+	
+	<p:confirmDialog widgetVar="deleteDetalleCompraDialog" showEffect="fade" width="300" message="¿Deseas eliminar el detalle de compra?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update=":form:tabView:idTableDetalle" oncomplete="PF('deleteDetalleCompraDialog').hide()" actionListener="#{compraBean.deleteDetalleCompra}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('deleteDetalleCompraDialog').hide()" />
+    </p:confirmDialog>
+	
+</ui:composition>

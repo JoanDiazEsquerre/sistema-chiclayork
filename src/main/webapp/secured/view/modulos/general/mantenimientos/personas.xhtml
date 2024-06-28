@@ -1,0 +1,91 @@
+	<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">MANTENIMIENTOS > PERSONAS</h2>
+		<p:selectOneButton value="#{personaBean.estado}" unselectable="false">
+			<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+			<f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+			<p:ajax update=":form:idTablePer" />
+		</p:selectOneButton>
+
+		<p:dataTable var="per" id="idTablePer" value="#{personaBean.lstPersonsLazy}" widgetVar="personsTable" rowIndexVar="row" paginator="true" rows="15" size="small" 
+			emptyMessage="No se encontraron Personas." paginatorPosition="bottom" rowKey="#{per.id}" selection="#{personaBean.personaSelected}" selectionMode="single"
+			lazy="true">
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>Lista de Personas</span>
+				</div>
+			</f:facet>
+			<p:ajax event="rowSelect" update=":formDialog :dialogPerson" listener="#{personaBean.updatePerson()}" oncomplete="PF('personNewDialog').show();" />
+
+			<p:column style="width:42px;text-align: left">
+				<f:facet name="header">
+					<p:commandLink action="#{personaBean.newPerson()}" update=":dialogPerson" oncomplete="PF('personNewDialog').show();" title="NUEVA USUARIO">
+						<p:graphicImage width="50" value="/recursos/images/anadir.png" />
+					</p:commandLink>
+				</f:facet>
+			</p:column>
+
+			<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+			<p:column headerText="DNI" sortBy="#{per.dni}" filterBy="#{per.dni}" filterMatchMode="contains">
+				<h:outputText value="#{per.dni}" />
+			</p:column>
+			<p:column headerText="Apellidos y Nombres" sortBy="#{per.apellidos}" filterBy="#{per.apellidos}" filterMatchMode="contains">
+				<h:outputText value="#{per.apellidos} #{per.nombres}" />
+			</p:column>
+			<p:column headerText="Teléfono" sortBy="#{per.telefono}" filterMatchMode="contains">
+				<h:outputText value="#{per.telefono}" />
+			</p:column>
+			<p:column headerText="Fecha Nacimiento" sortBy="#{per.fechaNacimiento}" filterMatchMode="contains">
+				<h:outputText value="#{per.fechaNacimiento}" > 
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			<p:column headerText="Dirección" sortBy="#{per.direccion}" filterMatchMode="contains">
+				<h:outputText value="#{per.direccion}" />
+			</p:column>
+		</p:dataTable>
+	</h:form>
+	
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogPerson" header="#{personaBean.tituloDialog}" widgetVar="personNewDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialog">
+	        <p:tabView id="tabOpciones">
+				<p:tab title="Persona">
+					<h:panelGrid id="grid" columns="4" >
+						<h:outputLabel for="dni" value="DNI:" />
+						<p:inputText id="dni" value="#{personaBean.personaSelected.dni}" style="margin:10px" maxlength="8" />
+
+						<h:outputLabel for="surname" value="Apellidos:" />
+						<p:inputText id="surname" value="#{personaBean.personaSelected.apellidos}" style="margin:10px" />
+
+						<h:outputLabel for="name" value="Nombres:" />
+						<p:inputText id="name" value="#{personaBean.personaSelected.nombres}" style="margin:10px" />
+
+						<h:outputLabel for="phone" value="Teléfono:" />
+						<p:inputText id="phone" value="#{personaBean.personaSelected.telefono}" style="margin:10px"  />
+						
+						<h:outputLabel for="nac" value="Fecha Nacimiento" />
+						<p:datePicker id="nac" value="#{personaBean.personaSelected.fechaNacimiento}" style="margin:10px"/>
+
+						<h:outputLabel for="address" value="Dirección:" />
+						<p:inputText id="address" value="#{personaBean.personaSelected.direccion}" style="margin:10px" />
+
+					</h:panelGrid>
+					<p:commandButton value="Guardar" actionListener="#{personaBean.savePersona()}" update=":form:idTablePer :formDialog:tabOpciones:grid" />
+
+				</p:tab>
+			</p:tabView>
+			
+		</h:form>
+	</p:dialog>
+</ui:composition>

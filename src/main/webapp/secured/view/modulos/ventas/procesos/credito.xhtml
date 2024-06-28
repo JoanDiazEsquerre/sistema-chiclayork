@@ -1,0 +1,373 @@
+	<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">MANTENIMIENTOS > CRÉDITO</h2>
+		
+		<p:selectOneButton value="#{creditoBean.estadoCobrar}" unselectable="false">
+			<f:selectItem itemLabel="Pendientes" itemValue="Pendiente" />
+			<f:selectItem itemLabel="Cobrados" itemValue="Cobrado" />
+			<f:selectItem itemLabel="Anulados" itemValue="Anulado" />
+			<p:ajax update=":form:idTableCredito :form:idGridMasivo"/>
+		</p:selectOneButton> 
+		
+		<h:panelGrid columns="1">
+				
+			<p:commandButton actionListener="#{creditoBean.limpiarDatos()}"  value="Relación de Personas" oncomplete="PF('personaDialog').show();" update=":formDialogPersona"/>
+			
+		</h:panelGrid>
+		
+		<h:panelGrid id="idGridMasivo" columns="3" rendered="#{creditoBean.estadoCobrar eq 'Pendiente'}">
+				
+			<h:outputLabel value="Persona:" />
+			<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{creditoBean.personPorCobrar}" converter="#{creditoBean.conversorPersonCredito}" completeMethod="#{creditoBean.completePersonCredito}"  
+			     var="pros" itemLabel="#{pros.apellidos.concat(' ')}#{pros.nombres}" itemValue="#{pros}" forceSelection="true" >
+				<p:column width="400px">
+			   		<h:outputLabel value="#{pros.apellidos} #{pros.nombres}" /> 
+			    </p:column>
+			    <p:column width="400px">
+			   		<h:outputLabel value="#{pros.dni}" /> 
+			    </p:column> 
+			    
+			    <p:ajax update=":form:idTableCredito"/>
+		    
+			</p:autoComplete>
+			
+<!-- 			<p:commandButton value="Cobrar Masivo"  icon="pi pi-dollar" styleClass="rounded-button" actionListener="#{creditoBean.validaCobroMasivo()}" /> -->
+			
+		</h:panelGrid>
+		
+		<p:dataTable var="credito" id="idTableCredito" value="#{creditoBean.lstCreditoLazy}" widgetVar="creditoTable" rowIndexVar="row" paginator="true" rows="15" size="small" 
+			emptyMessage="No se encontraron Créditos." paginatorPosition="bottom" rowKey="#{credito.id}" selection="#{creditoBean.creditoSelected}" selectionMode="single"
+			lazy="true">
+			
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<h:outputLabel value="Total: " style="font-size: 25px; font-weight: bold;"/>
+	      			<h:outputLabel value="#{creditoBean.sumaTotalCreditos}" style="font-size: 25px; font-weight: bold; color: red;"/>
+				</div>
+			</f:facet>
+			
+			<p:ajax event="rowSelect" update=":formDialog :dialogCredito" listener="#{creditoBean.updateCredito()}"  oncomplete="PF('creditoDialog').show();" />
+
+			<p:column style="width:42px;text-align: left">
+				<f:facet name="header">
+					<p:commandLink action="#{creditoBean.newCredito()}" update=":dialogCredito" oncomplete="PF('creditoDialog').show();" title="NUEVO CRÉDITO">
+						<p:graphicImage width="50" value="/recursos/images/anadir.png" />
+					</p:commandLink>
+				</f:facet>
+			</p:column>
+
+			<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+			
+			<p:column headerText="Fecha" sortBy="#{credito.fecha}" filterMatchMode="contains">
+				<h:outputText value="#{credito.fecha}" > 
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			
+			<p:column headerText="Persona" sortBy="#{credito.persona.nombres} " filterMatchMode="contains">
+				<h:outputText value="#{credito.persona.nombres} #{credito.persona.apellidos}" />
+			</p:column>
+			
+			<p:column headerText="Monto Pagado" filterMatchMode="contains" >
+				<h:outputText  value="#{credito.montoPagado}"> 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+			
+			<p:column headerText="Total" filterMatchMode="contains" >
+				<h:outputText  value="#{credito.total}"> 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+			
+			
+			<p:column width="10%" filterMatchMode="contains" rendered="#{creditoBean.estadoCobrar eq 'Pendiente'}">
+				<p:commandButton  icon="pi pi-dollar" styleClass="rounded-button" process="@this" oncomplete="PF('cobraCredito').show()"  >
+					<f:setPropertyActionListener value="#{credito}" target="#{creditoBean.creditoSelected}" />
+				</p:commandButton>
+				
+				<p:commandButton style="margin-left:20px;" icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" oncomplete="PF('eliminaCredito').show()" >
+					<f:setPropertyActionListener value="#{credito}" target="#{creditoBean.creditoSelected}" />
+				</p:commandButton>
+				
+			</p:column>
+			
+		</p:dataTable>
+	</h:form>
+			
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogPersona" height="80%" header="RELACIÓN DE PERSONAS CON CRÉDITOS" widgetVar="personaDialog" 
+		resizable="false" closable="true" appendTo="@(body)" width="70%">
+		<h:form id="formDialogPersona">
+			
+			
+			<h:panelGrid columns="4"  >
+				
+				<h:outputLabel value="Buscar Persona:" />
+				<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{creditoBean.person}" converter="#{creditoBean.conversorPerson}" completeMethod="#{creditoBean.completePerson}"  
+				     	var="pros" itemLabel="#{pros.apellidos.concat(' ')}#{pros.nombres}" itemValue="#{pros}" forceSelection="true" >
+					<p:column width="400px">
+				   		<h:outputLabel value="#{pros.apellidos} #{pros.nombres}" /> 
+				    </p:column>
+				    <p:column width="400px">
+				   		<h:outputLabel value="#{pros.dni}" /> 
+				    </p:column> 
+				    <p:ajax update=":formDialogPersona" listener="#{creditoBean.setearDatosPersona()}"/>
+				    
+				</p:autoComplete>
+				
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2"  > 
+			
+				<h:outputLabel value="Nombres:" />
+				<p:inputText value="#{creditoBean.nombres}"  />
+
+				<h:outputLabel value="Apellidos:" />
+				<p:inputText  value="#{creditoBean.apellidos}"  />
+
+				<h:outputLabel value="DNI:" />
+				<p:inputText value="#{creditoBean.dni}" maxlength="8" />
+			
+			</h:panelGrid>
+		
+			<h:panelGrid columns="1"  >
+			
+				<p:commandButton value="Guardar" action="#{creditoBean.savePerson}" update="formDialogPersona" />
+			
+			</h:panelGrid>
+			
+			
+			
+			<p:dataTable reflow="true" var="persona" id="idTabPersona" value="#{creditoBean.lstPersonCredito}" rowIndexVar="row" rows="10" paginator="true" size="small"
+	    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{persona.id}" selection="#{creditoBean.personSelected}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PERSONAS</span>
+	                </div>
+	            </f:facet>
+	            
+	            <p:column width="25px">
+	                      #{row +1}
+	       		</p:column>
+	
+	            <p:column headerText="Nombres"  filterMatchMode="contains">
+	                <h:outputText value="#{persona.nombres}" />
+	            </p:column>
+	            
+	            <p:column headerText="Apellidos"  filterMatchMode="contains">
+	                <h:outputText value="#{persona.apellidos}" />
+	            </p:column>
+	            
+	            <p:column headerText="DNI"  filterMatchMode="contains">
+	                <h:outputText value="#{persona.dni}" />
+	            </p:column>
+	            
+	            <p:column width="10%" filterMatchMode="contains">
+					<p:commandButton  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" action="#{creditoBean.deletePerson}" update=":formDialogPersona:idTabPersona" >
+						<f:setPropertyActionListener value="#{persona}" target="#{creditoBean.personSelected}" />
+					</p:commandButton>
+				</p:column>
+	           
+	        </p:dataTable>
+			
+		</h:form>
+	</p:dialog>
+	
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogCredito" header="#{creditoBean.tituloDialog}" widgetVar="creditoDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialog">
+	        
+			<h:panelGrid  columns="2" >
+			
+				<h:outputLabel  value="Fecha: " />
+				<p:datePicker  value="#{creditoBean.creditoSelected.fecha}"  />
+			
+				<h:outputLabel value="Persona:" />
+				<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{creditoBean.creditoSelected.persona}" converter="#{creditoBean.conversorPersonCredito}" completeMethod="#{creditoBean.completePersonCredito}"  
+				     var="pros" itemLabel="#{pros.apellidos.concat(' ')}#{pros.nombres}" itemValue="#{pros}" forceSelection="true" >
+				<p:column width="400px">
+			   		<h:outputLabel value="#{pros.apellidos} #{pros.nombres}" /> 
+			    </p:column>
+			    <p:column width="400px">
+			   		<h:outputLabel value="#{pros.dni}" /> 
+			    </p:column> 
+				</p:autoComplete>
+				
+				<h:outputText style="" value="TOTAL: " />
+				<h:outputText id="idTotal" style="color:blue;font-weight: bold; " value="#{creditoBean.creditoSelected.total}" >
+	                <f:convertNumber type="currency" currencySymbol=""/>   
+	            </h:outputText>
+			
+			</h:panelGrid>  
+			
+			<h:panelGrid columns="4" id="idCombosPlatos">
+				<p:outputLabel value="Entradas:" />
+				<p:selectOneMenu value="#{creditoBean.entradaSelected}" converter="#{creditoBean.conversorEntradaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstEntradaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}" />
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.entradaSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Menu:" />
+				<p:selectOneMenu value="#{creditoBean.menuSelected}" converter="#{creditoBean.conversorMenuEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstMenuEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.menuSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Carta:" />
+				<p:selectOneMenu value="#{creditoBean.cartaSelected}" converter="#{creditoBean.conversorCartaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstCartaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.cartaSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Bebidas:" />
+				<p:selectOneMenu value="#{creditoBean.bebidaSelected}" converter="#{creditoBean.conversorBebidaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstBebidaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.bebidaSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Plato Bandera:" />
+				<p:selectOneMenu value="#{creditoBean.platoBanderaSelected}" converter="#{creditoBean.conversorPlatoBanderaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstPlatoBanderaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.platoBanderaSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Guarniciones:" />
+				<p:selectOneMenu value="#{creditoBean.guarnicionesSelected}" converter="#{creditoBean.conversorGuarnicionesEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstGuarnicionesEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.guarnicionesSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Postres:" />
+				<p:selectOneMenu value="#{creditoBean.postresSelected}" converter="#{creditoBean.conversorPostresEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstPostresEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.postresSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Otros:" />
+				<p:selectOneMenu value="#{creditoBean.otrosSelected}" converter="#{creditoBean.conversorOtrosEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{creditoBean.lstOtrosEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{creditoBean.agregarDetalle(creditoBean.otrosSelected)}" update="idTabDetalle :formDialog:idTotal idCombosPlatos"/>
+				</p:selectOneMenu>
+				 
+				
+			</h:panelGrid>
+			
+			<p:commandButton value="GUARDAR" action="#{creditoBean.saveDetalleCredito}" update=":form:idTableCredito "  />
+			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{creditoBean.lstDetalleCreditoSelected}" rowIndexVar="row" rows="6" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}" >
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PEDIDOS</span>
+	                </div>
+	            </f:facet>
+	
+	            <p:column headerText="Plato" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.plato.nombre}" />
+	            </p:column>
+	            
+	            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.precioUnitario}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains">
+            
+            		<h:outputText value="#{detalle.cantidad}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+		            <p:commandButton style="margin-left:10px" icon="pi pi-minus" styleClass="rounded-button ui-button-secondary" action="#{creditoBean.disminuyeDetalle(detalle)}" update="idTabDetalle :formDialog:idTotal" />
+		            <p:commandButton style="margin-left:10px" icon="pi pi-plus" styleClass="rounded-button ui-button-secondary" action="#{creditoBean.aumentarDetalle(detalle)}" update="idTabDetalle :formDialog:idTotal"/> 
+					
+	            </p:column>
+	            
+	            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.total}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+	                <p:cellEditor>  
+                        <f:facet name="output">
+                            <h:outputText value="#{detalle.observacion}"/>
+                        </f:facet>  
+                        <f:facet name="input">
+                            <h:inputText value="#{detalle.observacion}" style="width: 100%; height: 100%;"/>
+                        </f:facet>  
+                    </p:cellEditor>
+	            </p:column>
+	            
+	            <p:column headerText="Estado Pago" width="20%" sortBy="#{detalle.estadoPago}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.estadoPago eq true ? 'SI':'NO'}" />
+	            </p:column>
+	            
+	            <p:column width="10%" filterMatchMode="contains">
+					<p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" action="#{creditoBean.eliminarDetalleCredito(row)}" 
+					rendered="#{detalle.estadoPago eq false}" update="idTabDetalle :formDialog:idTotal :formDialog:idCombosPlatos"/>
+				</p:column>
+	    	   
+	        </p:dataTable>
+
+				
+			
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI target="cobraCreditoMasivo" widgetVar="blockUIWidgetCobroMasivo">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="cobraCreditoMasivo" message="¿Está seguro de cobrar los créditos?" header="Confirmación" severity="alert" widgetVar="cobraCreditoMasivo" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetCobroMasivo').block();" oncomplete="PF('blockUIWidgetCobroMasivo').unblock();PF('cobraCreditoMasivo').hide()"  action="#{creditoBean.cobraCreditoMasivo}" update=":form:idTableCredito"/>
+            <p:commandButton value="NO" oncomplete="PF('cobraCreditoMasivo').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+	
+	<pe:blockUI target="cobraCredito" widgetVar="blockUIWidgetCobro">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="cobraCredito" message="¿Está seguro de cobrar el crédito?" header="Confirmación" severity="alert" widgetVar="cobraCredito" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetCobro').block();" oncomplete="PF('blockUIWidgetCobro').unblock();PF('cobraCredito').hide()"  action="#{creditoBean.cobraCredito}" update=":form:idTableCredito"/>
+            <p:commandButton value="NO" oncomplete="PF('cobraCredito').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="eliminaCredito" widgetVar="blockUIWidgetAnular">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="eliminaCredito" message="¿Está seguro de eliminar el crédito?" header="Confirmación" severity="alert" widgetVar="eliminaCredito" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnular').block();" oncomplete="PF('blockUIWidgetAnular').unblock();PF('eliminaCredito').hide()"  action="#{creditoBean.eliminaCredito}" update=":form:idTableCredito"/>
+            <p:commandButton value="NO" oncomplete="PF('eliminaCredito').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    
+	
+</ui:composition>

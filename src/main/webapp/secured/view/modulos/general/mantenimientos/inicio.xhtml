@@ -1,0 +1,81 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form" >
+		<div style="width: 100%;height:100%;text-align: center;">
+		<h:panelGrid id="grid" columns="1">
+			<p:graphicImage value="/recursos/images/LOGO.png" width="40%"  library="demo"/>
+			
+			<h:panelGrid style="text-align:center;" width="100%">
+			
+				<p:outputLabel value="#{inicioBean.texto1}"/>
+				<p:outputLabel value="#{inicioBean.texto2}"/>
+				<p:outputLabel value="#{inicioBean.texto3}" />
+				<p:outputLabel value="#{inicioBean.texto4}" style=":10%;"/>	
+			
+			</h:panelGrid>
+		</h:panelGrid>
+			
+		</div>
+    		
+		
+		
+	</h:form>
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogInicio" header="LOTES SEPARADOS" widgetVar="inicioDialog" resizable="false" closable="true"
+		appendTo="@(body)"  width="80%">
+		<h:form id="formInicioDialog">
+			<p:selectOneButton value="#{inicioBean.busqueda}"> 
+				<f:selectItem itemLabel="Por vencer" itemValue="#{true}" />
+				<f:selectItem itemLabel="Vencidos" itemValue="#{false}" />
+				<p:ajax update=":formInicioDialog:idTableLote" />
+			</p:selectOneButton>
+			<p:dataTable var="lote" id="idTableLote" value="#{inicioBean.lstLoteLazy}"  widgetVar="loteTable" rowIndexVar="row" paginator="true" rows="7" 
+			size="small" emptyMessage="No se encontraron lotes." paginatorPosition="bottom" rowKey="#{lote.id}"  selectionMode="single">
+
+			<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+
+			<p:column headerText="Número de Lote" sortBy="#{lote.numberLote}"  filterMatchMode="contains" responsivePriority="14">
+				<h:outputText value="#{lote.numberLote}" />
+			</p:column>
+			
+			<p:column headerText="Manzana" sortBy="#{lote.manzana.name}" filterMatchMode="contains" responsivePriority="13" >
+				<h:outputText value="#{lote.manzana.name}" />
+			</p:column>
+			
+			<p:column headerText="Ampliación" sortBy="#{lote.ampliacion}" filterMatchMode="contains" responsivePriority="4">
+				<h:outputText value="#{lote.ampliacion eq 'S'?'Si':'No'}" />
+			</p:column>
+			
+			<p:column headerText="Proyecto" sortBy="#{lote.project.name}" width="250px" filterMatchMode="contains" responsivePriority="11">
+                <h:outputText value="#{lote.project.name}" />
+            </p:column>
+            
+            <p:column headerText="Estado" filterMatchMode="contains" responsivePriority="12">
+				<h:outputText value="#{lote.status}" style="font-weight: bold;color:#{lote.status eq 'Disponible'?'green':lote.status eq 'Separado'?'blue':lote.status eq 'Vendido'?'red':'black'}" />
+			</p:column>
+           
+			<p:column headerText="Fecha Separación" filterMatchMode="contains" responsivePriority="3">
+				<h:outputText value="#{lote.fechaSeparacion}" > 
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			
+			<p:column headerText="Fecha Vencimiento" filterMatchMode="contains" responsivePriority="3">
+				<h:outputText value="#{lote.fechaVencimiento}" > 
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			
+		</p:dataTable>
+			
+		</h:form>
+	</p:dialog>	
+</ui:composition>

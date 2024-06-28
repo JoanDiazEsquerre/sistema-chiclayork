@@ -1,0 +1,418 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">PLATOS > PLATOS</h2>
+		
+		
+		<p:commandButton value="MANTENIMIENTO" icon="pi pi-cog" onclick="PF('platoDialog').show();" actionListener="#{platosBean.inicarDatosPlato}" update="formMant" style="margin: 10px" styleClass="rounded-button"/>
+		<p:commandButton value="REGISTRO AUTOMATICO" icon="pi pi-arrow-circle-down" action="#{platosBean.registroAutomatico}" onstart="PF('blockUIWidgetGeneral').block();" update=":form:idTabEntrada :form:idTabMenu :form:idTabCarta :form:idTabBebida :form:idTabPlatoBandera :form:idLstEntrada :form:idLstMenu :form:idLstCarta :form:idLstBebida :form:idLstPlatoBandera" oncomplete="PF('blockUIWidgetGeneral').unblock();" style="margin: 10px" styleClass="rounded-button"/>
+		<p:commandButton value="QUITAR TODO" icon="pi pi-trash" action="#{platosBean.quitarEnCarta}" update=":form:idTabEntrada :form:idTabMenu :form:idTabCarta :form:idTabBebida :form:idTabPlatoBandera :form:idLstEntrada :form:idLstMenu :form:idLstCarta :form:idLstBebida :form:idLstPlatoBandera" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" styleClass="rounded-button" />
+		
+		<h:panelGrid id="grid" columns="1" width="100%">
+			<h:panelGrid columns="5">
+				Entradas: 
+				<p:selectOneMenu value="#{platosBean.platoEntrada}" style="margin:5px;width:250px" converter="#{platosBean.conversorPlatoEntrada}" id="idLstEntrada">
+					<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoEntrada}" var="ent" itemLabel="#{ent.nombre}" itemValue="#{ent}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoEntrada)}" icon="pi pi-check" styleClass="rounded-button" update="idTabEntrada, idLstEntrada"/>
+			</h:panelGrid>
+			 
+			<p:dataTable reflow="true" var="entrada" id="idTabEntrada" value="#{platosBean.lazyPlatoEntradaEnCarta}" widgetVar="entradaTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{entrada.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA ENTRADAS</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{entrada.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{entrada.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{entrada.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{entrada.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(entrada)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabEntrada form:idLstEntrada" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        
+	        <h:panelGrid columns="5">
+	        	Menus:  
+		        <p:selectOneMenu value="#{platosBean.platoMenu}" style="margin:5px;width:250px" converter="#{platosBean.conversorPlatoMenu}" id="idLstMenu">
+		        	<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoMenu}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu> 
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoMenu)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabMenu, idLstMenu" />
+			</h:panelGrid>
+			
+			<p:dataTable reflow="true" var="menu" id="idTabMenu" value="#{platosBean.lazyPlatoMenuEnCarta}" widgetVar="menuTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{menu.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE MENU</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{menu.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{menu.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{menu.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{menu.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(menu)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabMenu form:idLstMenu" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        <h:panelGrid columns="5">
+	        	Carta:   
+	        	<p:selectOneMenu value="#{platosBean.platoCarta}" style="margin:5px;width:250px" converter="#{platosBean.conversorPlatoCarta}" id="idLstCarta">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoCarta}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoCarta)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabCarta, idLstCarta" />
+	        </h:panelGrid>
+	        
+	        
+	        <p:dataTable reflow="true" var="carta" id="idTabCarta" value="#{platosBean.lazyPlatoCartaEnCarta}" widgetVar="cartaTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{carta.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE CARTA</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{carta.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{carta.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{carta.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{carta.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(carta)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabCarta form:idLstCarta" />
+				</p:column>
+
+	        </p:dataTable>
+	         
+	        <h:panelGrid columns="5">
+	          	Bebidas:  
+	        	<p:selectOneMenu value="#{platosBean.platoBebida}" style="margin:5px;width:250px" converter="#{platosBean.conversorPlatoBebida}" id="idLstBebida">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoBebida}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoBebida)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabBebida, idLstBebida" />
+	        </h:panelGrid>
+	        
+	         <p:dataTable reflow="true" var="bebida" id="idTabBebida" value="#{platosBean.lazyPlatoBebidaEnCarta}" widgetVar="bebidaTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{bebida.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE BEBIDA</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{bebida.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{bebida.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{bebida.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{bebida.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(bebida)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabBebida form:idLstBebida" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        <h:panelGrid columns="5">
+	          	Plato Bandera:  
+	        	<p:selectOneMenu value="#{platosBean.platoPlatoBandera}" style="margin:5px;width:250px" converter="#{platosBean.conversorPlatoBandera}" id="idLstPlatoBandera">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoBandera}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoPlatoBandera)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabPlatoBandera idLstPlatoBandera" />
+	        </h:panelGrid>
+	        
+	         <p:dataTable reflow="true" var="bandera" id="idTabPlatoBandera" value="#{platosBean.lazyPlatoBanderaEnCarta}" widgetVar="banderaTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{bandera.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PLATOS BANDERA</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{bandera.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{bandera.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{bandera.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{bandera.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(bandera)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabPlatoBandera form:idLstPlatoBandera" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        <h:panelGrid columns="5">
+	          	Guarniciones:  
+	        	<p:selectOneMenu value="#{platosBean.platoGuarniciones}" style="margin:5px;width:250px" converter="#{platosBean.conversorGuarniciones}" id="idLstGuarniciones">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoGuarniciones}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoGuarniciones)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabGuarniciones idLstGuarniciones" />
+	        </h:panelGrid>
+	        
+	         <p:dataTable reflow="true" var="guarniciones" id="idTabGuarniciones" value="#{platosBean.lazyPlatoGuarnicionesEnCarta}" widgetVar="guarnicionesTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{guarniciones.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE GUARNICIONES</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{guarniciones.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{guarniciones.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{guarniciones.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{guarniciones.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(guarniciones)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabGuarniciones form:idLstGuarniciones" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        <h:panelGrid columns="5">
+	          	Postres:  
+	        	<p:selectOneMenu value="#{platosBean.platoPostres}" style="margin:5px;width:250px" converter="#{platosBean.conversorPostres}" id="idLstPostres">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoPostres}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoPostres)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabPostres idLstPostres" />
+	        </h:panelGrid>
+	         
+	         <p:dataTable reflow="true" var="postre" id="idTabPostres" value="#{platosBean.lazyPlatoPostresEnCarta}" widgetVar="postresTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{postre.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE POSTRES</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{postre.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{postre.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{postre.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{postre.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(postre)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabPostres form:idLstPostres" />
+				</p:column>
+
+	        </p:dataTable>
+	        
+	        <h:panelGrid columns="5">
+	          	Otros:  
+	        	<p:selectOneMenu value="#{platosBean.platoOtros}" style="margin:5px;width:250px" converter="#{platosBean.conversorOtros}" id="idLstOtros">
+	        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+					<f:selectItems value="#{platosBean.lstPlatoOtros}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+				</p:selectOneMenu>
+				<p:commandButton action="#{platosBean.agregarPlato(platosBean.platoOtros)}" icon="pi pi-check" styleClass="rounded-button"  update="idTabOtros idLstOtros" />
+	        </h:panelGrid>
+	         
+	         <p:dataTable reflow="true" var="otros" id="idTabOtros" value="#{platosBean.lazyPlatoOtrosEnCarta}" widgetVar="postresTable" rowIndexVar="row" rows="15" paginator="true" size="small"
+	            emptyMessage="No se asignaron platos." paginatorPosition="bottom" rowKey="#{otros.id}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE OTROS</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{otros.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{otros.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio" sortBy="#{otros.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{otros.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	             <p:column filterMatchMode="contains">
+					<p:commandButton action="#{platosBean.eliminarPlatoMenu(otros)}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="form:idTabOtros form:idLstOtros" />
+				</p:column>
+
+	        </p:dataTable>
+	  
+		</h:panelGrid>
+		
+	</h:form>
+	
+	<p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogPlato" header="MANTENIMIENTO DE PLATOS" widgetVar="platoDialog" resizable="false" closable="true" 
+        appendTo="@(body)" style="background-color:green;" width="80%">
+        <h:form id="formMant">  
+        
+        	<h:panelGrid columns="2"> 
+        	
+        		<h:outputLabel value="Producto:" />
+				<p:selectOneMenu value="#{platosBean.productoSelected}" style="margin:5px;width:250px" converter="#{platosBean.conversorProducto}" >
+					<f:selectItems value="#{platosBean.lstProducto}" var="pro" itemLabel="#{pro.descripcion}" itemValue="#{pro}"/>
+					<p:ajax update=":formMant:idTabPlatos"/>
+				</p:selectOneMenu>
+				
+        	</h:panelGrid>
+        	
+            <h:panelGrid id="gridMant" columns="2"> 
+            
+            	
+            
+				<h:outputLabel for="nom" value="Nombre:" />
+				<p:inputText id="nom" value="#{platosBean.platoNew.nombre}" maxlength="100" />
+				
+				<h:outputLabel for="pre" value="Precio:" />
+				<p:inputNumber decimalSeparator="." thousandSeparator=","  id="pre" value="#{platosBean.platoNew.precio}" modifyValueOnWheel="false" />
+				
+				<h:outputLabel value="Registro Automático: " />
+				<p:selectOneMenu value="#{platosBean.platoNew.automatico}">
+					<f:selectItem itemLabel="NO" itemValue="NO" />
+					<f:selectItem itemLabel="SI" itemValue="SI" />
+				</p:selectOneMenu>
+				
+				
+				
+				<p:commandButton value="GUARDAR" update=":formMant:idTabPlatos :formMant:gridMant :form:idLstEntrada :form:idLstMenu :form:idLstCarta :form:idLstBebida :form:idLstPlatoBandera :form:idLstGuarniciones :form:idLstPostres :form:idLstOtros" actionListener="#{platosBean.savePlato}"/>
+				<p:commandButton value="CANCELAR" update=":formMant:gridMant :formMant:idTabPlatos" actionListener="#{platosBean.inicarDatosPlato}"/>
+            	
+            </h:panelGrid>
+            
+            <p:dataTable reflow="true" var="plato" id="idTabPlatos" value="#{platosBean.lazyPlatosMant}" widgetVar="menuTable" rowIndexVar="row" rows="10" paginator="true" size="small"
+	            emptyMessage="No se asignaron bebidas." paginatorPosition="bottom" rowKey="#{plato.id}" selection="#{platosBean.platoSelectedMant}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>Lista de #{platosBean.platoNew.producto.descripcion}</span>
+	                </div>
+	            </f:facet>
+	
+	           <p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           	<p:column headerText="Descripcion" sortBy="#{plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{plato.nombre}" />
+	            </p:column>
+	            
+	            <p:column headerText="Precio" sortBy="#{plato.precio}" filterMatchMode="contains">
+	                <h:outputText value="#{plato.precio}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column headerText="Producto" sortBy="#{plato.producto.descripcion}" filterMatchMode="contains">
+	                <h:outputText value="#{plato.producto.descripcion}" />
+	            </p:column>
+	            
+	            <p:column headerText="Registro Automatico" sortBy="#{plato.automatico}" filterMatchMode="contains">
+	                <h:outputText value="#{plato.automatico}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column filterMatchMode="contains">
+					<p:commandButton id="btnEliminar" action="#{platosBean.accionEliminar(plato)}" rendered="#{platosBean.idMod eq null}" update=":formMant:idTabPlatos :formMant:gridMant :form:idLstEntrada :form:idLstMenu :form:idLstCarta :form:idLstBebida :form:idLstPlatoBandera" icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" style="margin: 10px"/>
+					<p:commandButton id="btnModificar" action="#{platosBean.accionModificar(plato)}" rendered="#{platosBean.idMod eq null}" update=":formMant:gridMant :formMant:idTabPlatos" icon="pi pi-pencil" styleClass="rounded-button ui-button-warning" process="@this" style="margin: 10px"/>
+				</p:column>
+	    	   
+	        </p:dataTable>
+            
+        </h:form>
+    </p:dialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+    
+    
+    
+    
+    
+    
+    <script type="text/javascript">
+
+        function hacerClick(elementName) {
+            element = document.getElementById(elementName);
+            element.click();
+        }
+
+        function modificarPlato(xhr, status, args) {
+            if (!args.noEsValido) {
+                PF('platoDialog').show();
+            } 
+        }
+    </script> 
+	
+</ui:composition>

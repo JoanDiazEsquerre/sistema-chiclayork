@@ -1,0 +1,1072 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">ATENCIÓN > MESAS</h2>
+		<p:tabView id="tabView">
+			<p:tab title="Mesas">
+				<h:panelGrid columns="4" > 
+					<p:selectOneMenu id="filterMapeo" value="#{atencionBean.pisoSelected}" converter="#{atencionBean.conversorPiso}" >
+						<f:selectItems value="#{atencionBean.lstPisos}" var="ps" itemLabel="#{ps.nombre}" itemValue="#{ps}"/>
+						<p:ajax listener="#{atencionBean.cambiarPiso}" update="form:tabView:gridMesa" />
+					</p:selectOneMenu>
+					
+					<p:commandButton icon="pi pi-plus" styleClass="rounded-button ui-button-secondary" action="#{atencionBean.aumentarMesa}" update="form:tabView:gridMesa"/>
+					<p:commandButton icon="pi pi-minus" styleClass="rounded-button ui-button-secondary" action="#{atencionBean.disminuyeMesa}" update="form:tabView:gridMesa" />
+					
+					
+				</h:panelGrid>
+					<p:commandButton value="Actualizar" action="#{atencionBean.cambiarPiso}" update="form:tabView:gridMesa" style="float:right"/>
+					
+					<h:panelGrid id="gridMesa" columns="5" width="100%" > 
+						<p:repeat value="#{atencionBean.lstMesas}" var="mesa">
+						<p:commandButton value="#{mesa.numMesa} " oncomplete="PF('atencionDialog').show();" action="#{atencionBean.verDetalles}" update="dialogAtencion" style="margin:5px;width:18%;font-size:40px;height: 100px;background:#{atencionBean.buscaEstadoMesa(mesa.numMesa)}"> 
+							<f:setPropertyActionListener value="#{mesa}" target="#{atencionBean.mesaSelected}" />
+						</p:commandButton>
+			   		</p:repeat>
+				</h:panelGrid>
+						
+			</p:tab>
+			
+			<p:tab title="Orden de pedidos" rendered="false">
+				<p:selectOneButton value="#{atencionBean.estadoChef}" unselectable="false">
+					<f:selectItem itemLabel="Pendientes" itemValue="Pendiente" />
+					<f:selectItem itemLabel="Atendidos" itemValue="Atendido" />
+					<p:ajax update=":form:tabView:idTableChef" />
+				</p:selectOneButton> 
+				
+				<p:commandButton value="Actualizar" update=":form:tabView:idTableChef" style="float:right"/>
+				
+				<p:dataTable var="atencion" id="idTableChef" value="#{atencionBean.lstAtencionLazy}" widgetVar="atencionTable" rowIndexVar="row" paginator="true" rows="20" size="small"
+					emptyMessage="No se encontraron resultados."	paginatorPosition="bottom" rowKey="#{atencion.id}" selection="#{atencionBean.atencionChefSelected}" selectionMode="single">
+					<p:ajax event="rowSelect" listener="#{atencionBean.verDetallesChef}" update="dialogAtencionChef" oncomplete="PF('atencionDialogChef').show();" />
+				
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Pedidos #{atencionBean.estadoChef}</span>
+						</div>
+					</f:facet>
+					<p:column width="25px">
+			                      #{row +1}
+			        </p:column>
+			        
+					<p:column headerText="Piso" sortBy="#{atencion.piso.nombre}" filterMatchMode="contains">
+						<h:outputText value="#{atencion.piso.nombre}" />
+					</p:column>
+					<p:column headerText="Número de mesa" sortBy="#{atencion.numMesa}" filterMatchMode="contains">
+						<h:outputText value="#{atencion.numMesa}" />
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{atencionBean.calcularTotalVistaReporte(atencion)}" >   
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+		
+					<p:column headerText="Fecha Registro" filterMatchMode="contains" sortBy="#{atencion.fechaRegistro}">
+						<h:outputText value="#{atencionBean.convertirHora(atencion.fechaRegistro)}" />
+					</p:column>
+					
+					<p:column headerText="Mesero(a)" filterMatchMode="contains" sortBy="#{atencion.usuario.persona.nombres}">
+						<h:outputText value="#{atencion.usuario.persona.nombres} #{atencion.usuario.persona.apellidos}" />
+					</p:column>
+				</p:dataTable>
+			</p:tab>
+			<p:tab title="Cobrar Pedido">
+				<h:outputLabel value="Fecha: " />
+				<p:datePicker id="fecha" value="#{atencionBean.fechaEmision}" style="margin:5px;">
+					<p:ajax update="txt_fecha" />
+				</p:datePicker>
+
+				<h:outputText style="font-size: 22px; font-weight: bold; color: #547E11;" id="txt_fecha" value="#{atencionBean.fechaEmision}">
+					<f:convertDateTime pattern="EEEEE, dd MMMM yyyy" />
+				</h:outputText>
+				
+				<h:panelGrid  columns="1"> 
+				<p:selectOneButton value="#{atencionBean.estadoCobrar}" unselectable="false">
+					<f:selectItem itemLabel="Ocupados" itemValue="Ocupado" />
+					<f:selectItem itemLabel="Cobrados" itemValue="Cobrado" />
+					<f:selectItem itemLabel="Eliminados" itemValue="Eliminado" />
+					<p:ajax update=":form:tabView:idTableCobrar :form:tabView:idOpciones" />
+				</p:selectOneButton> 
+				</h:panelGrid>
+				
+				<p:commandButton value="Actualizar" update=":form:tabView:idTableCobrar" style="float:right"/>
+				
+				<p:dataTable var="atencion" id="idTableCobrar" value="#{atencionBean.lstAtencionLazyCobrar}" rowIndexVar="row" paginator="true" rows="20" size="small"
+				emptyMessage="No se encontraron resultados."	paginatorPosition="bottom" rowKey="#{atencion.id}" selection="#{atencionBean.atencionCobrarSelected}" selectionMode="single">
+					<p:ajax event="rowSelect" listener="#{atencionBean.opcionCobrar}" update="dialogGeneraDoc formGeneraDoc dialogDetallePedido formDetallePedidoDialog"/>
+
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Pedidos #{atencionBean.estadoCobrar}s</span>
+						</div>
+					</f:facet>
+					<p:column width="25px">
+			                      #{row +1}
+			        </p:column>
+					<p:column headerText="Número de mesa" sortBy="#{atencion.numMesa}" filterMatchMode="contains" style="width:50px; text-align:center">
+						<h:outputText value="#{atencion.numMesa}" />
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains" style="width:70px; text-align:center">
+						<h:outputText value="#{atencionBean.calcularTotalVistaReporte(atencion)}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+		
+					<p:column headerText="Fecha Registro" filterMatchMode="contains" sortBy="#{atencion.fechaRegistro}" style="width:200px; text-align:center">
+						<h:outputText value="#{atencionBean.convertirHora(atencion.fechaRegistro)}" />
+					</p:column>
+					
+					<p:column headerText="Usuario Mesero" filterMatchMode="contains" sortBy="#{atencion.usuario.username}" style="width:80px; text-align:center">
+						<h:outputText value="#{atencion.usuario.username}" />
+					</p:column>
+					
+					<p:column headerText="Fecha Cobro" filterMatchMode="contains" sortBy="#{atencion.fechaCobro}" style="width:200px; text-align:center">
+						<h:outputText value="#{atencionBean.convertirHora(atencion.fechaCobro)}" />
+					</p:column>
+					
+					<p:column headerText="Usuario Cobro" filterMatchMode="contains" sortBy="#{atencion.usuarioCobro.username}" style="width:80px; text-align:center">
+						<h:outputText value="#{atencion.usuarioCobro.username}" />
+					</p:column>
+					<p:column headerText="Tipo Documento" sortBy="#{atencion.tipoDocumento.descripcion}" filterMatchMode="contains" style="width:130px; text-align:center">
+						<h:outputText value="#{atencion.tipoDocumento.descripcion}" />
+					</p:column>
+					<p:column headerText="Crédito" sortBy="#{atencion.credito}" filterMatchMode="contains" style="width:50px; text-align:center">
+						<h:outputText value="#{atencion.credito? 'SI': 'NO'}" />
+					</p:column>
+					<p:column headerText="Tipo Pago" sortBy="#{atencion.tipoPago}" filterMatchMode="contains" style="width:130px; text-align:center">
+						<h:outputText value="#{atencion.monto gt 0 ? atencion.tipoPago.concat(' / ') : '' } #{atencion.monto2 gt 0 ? atencion.tipoPago2 : ''}"  />
+					</p:column>
+					<p:column headerText="Documento Referencia" filterMatchMode="contains" style="width:130px; text-align:center">
+						<h:outputText value="#{atencion.documentoVenta.serie}-#{atencion.documentoVenta.numero}" />
+					</p:column>
+					<p:column headerText="Correlativo" sortBy="#{atencion.id}" filterMatchMode="contains" style="width:80px; text-align:center">
+						<h:outputText value="#{atencion.id}" />
+					</p:column>
+				</p:dataTable>
+				<p:contextMenu for="idTableCobrar" id="idOpciones">
+					<p:menuitem value="Generar Documento" rendered="#{atencionBean.estadoCobrar eq 'Cobrado'}" icon="pi pi-times" actionListener="#{atencionBean.validaGeneraDocumento}" update="formGeneraDoc"/>
+		            <p:menuitem value="Ver Doc. Generado" actionListener="#{atencionBean.listarDetalleDocumentoVenta}" rendered="#{atencionBean.estadoCobrar eq 'Cobrado'}" icon="pi pi-times"  update="formDocumentoVentaDialog" oncomplete="PF('docVentDialog').show();"/>
+		            <p:menuitem value="Eliminar" icon="pi pi-times" onclick="PF('eliminarPedidoDialog').show()"/>   
+		        </p:contextMenu>  
+			</p:tab>
+			
+			<p:tab title="Registro manual" rendered="false">
+				<h:panelGrid  columns="3"> 
+					<h:outputLabel value="Fecha: " />
+					<p:datePicker value="#{atencionBean.fechaRegManual}" style="margin:5px;">
+						<p:ajax update="txt_fecha_Formated" />
+					</p:datePicker>
+					<h:outputText style="font-size: 22px; font-weight: bold; color: #547E11;" id="txt_fecha_Formated" value="#{atencionBean.fechaRegManual}">
+						<f:convertDateTime pattern="EEEEE, dd MMMM yyyy" />
+					</h:outputText>
+				</h:panelGrid>
+				<h:panelGrid id="idRegMan" columns="2"> 
+					<h:outputText value="Crédito: " />
+					<p:selectOneMenu value="#{atencionBean.creditoRegManual}">
+						<f:selectItem itemLabel="No" itemValue="#{false}" />
+						<f:selectItem itemLabel="Si" itemValue="#{true}" />
+					</p:selectOneMenu>
+					
+					<h:outputText value="DNI/RUC:" />
+					<p:inputText value="#{atencionBean.dniRucRegManual}" />
+					
+					<h:outputText value="Cliente:" />
+					<p:inputText value="#{atencionBean.clienteRegManual}" />
+					
+					<h:outputText style="" value="TOTAL: " />
+					<h:outputText style="color:blue;font-weight: bold; " value="#{atencionBean.totalRegManualDetalle}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+					
+					<p:commandButton value="GUARDAR" action="#{atencionBean.mensajeSaveRegistroManual()}" />
+					
+				</h:panelGrid>
+				
+				<h:panelGrid columns="4" >
+					<p:outputLabel value="Entradas:" />
+					<p:outputLabel value="Menu:" />
+					<p:outputLabel value="Carta:" />
+					<p:outputLabel value="Bebidas:" />
+					
+					<p:selectOneMenu value="#{atencionBean.platoEntrada}" style="margin:5px;width:250px" converter="#{atencionBean.conversorPlatoEntrada}" id="idLstEntrada">
+						<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+						<f:selectItems value="#{atencionBean.lstPlatoEntrada}" var="ent" itemLabel="#{ent.nombre}" itemValue="#{ent}"/>
+						<p:ajax listener="#{atencionBean.agregarDetalleManualEntrada(atencionBean.platoEntrada)}" update="form:tabView:idTabDetalleRegMan :form:tabView:idRegMan"/>
+					</p:selectOneMenu>
+					
+					<p:selectOneMenu value="#{atencionBean.platoMenu}" style="margin:5px;width:250px" converter="#{atencionBean.conversorPlatoMenu}" id="idLstMenu">
+			        	<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+						<f:selectItems value="#{atencionBean.lstPlatoMenu}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+						<p:ajax listener="#{atencionBean.agregarDetalleManualEntrada(atencionBean.platoMenu)}" update="form:tabView:idTabDetalleRegMan :form:tabView:idRegMan"/>
+					</p:selectOneMenu> 
+					
+					<p:selectOneMenu value="#{atencionBean.platoCarta}" style="margin:5px;width:250px" converter="#{atencionBean.conversorPlatoCarta}" id="idLstCarta">
+		        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+						<f:selectItems value="#{atencionBean.lstPlatoCarta}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+						<p:ajax listener="#{atencionBean.agregarDetalleManualEntrada(atencionBean.platoCarta)}" update="form:tabView:idTabDetalleRegMan :form:tabView:idRegMan"/>
+					</p:selectOneMenu>
+					
+					<p:selectOneMenu value="#{atencionBean.platoBebida}" style="margin:5px;width:250px" converter="#{atencionBean.conversorPlatoBebida}" id="idLstBebida">
+		        		<f:selectItem itemLabel="[-- Selecionar --]" itemValue="#{null}" />
+						<f:selectItems value="#{atencionBean.lstPlatoBebida}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+						<p:ajax listener="#{atencionBean.agregarDetalleManualEntrada(atencionBean.platoBebida)}" update="form:tabView:idTabDetalleRegMan :form:tabView:idRegMan"/>
+					</p:selectOneMenu>
+				 
+				</h:panelGrid>
+				
+				<p:dataTable reflow="true" var="detalle" id="idTabDetalleRegMan" value="#{atencionBean.lstDetalleAtencionMesaRegManualSelected}" rowIndexVar="row" rows="15" paginator="true" size="small"
+		            emptyMessage="No se asignaron platos." editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}" selection="#{atencionBean.detalleRegManSelected}" selectionMode="single">
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between">
+		                    <span>LISTA DE PEDIDOS</span>
+		                </div>
+		            </f:facet>
+		
+		            <p:column headerText="Descripcion" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{detalle.plato.nombre}" />
+		            </p:column>
+		            
+		            <p:column headerText="Entrada" width="20%" sortBy="#{detalle.platoEntrada.nombre}" filterMatchMode="contains">
+		                <p:cellEditor>  
+	                        <f:facet name="output">
+	                            <h:outputText value="#{detalle.platoEntrada eq null?'[-Ninguno-]':detalle.platoEntrada.nombre}" />
+	                        </f:facet>  
+	                        <f:facet name="input">
+	                            <p:selectOneMenu value="#{detalle.platoEntrada}" converter="#{atencionBean.conversorPlatoEntrada}">
+									<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+									<f:selectItems value="#{atencionBean.lstPlatoEntrada}" var="ps" itemLabel="#{ps.nombre}" itemValue="#{ps}"/>
+								</p:selectOneMenu>
+	                        </f:facet>  
+	                    </p:cellEditor>
+		            </p:column>
+		            
+		            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains" >
+		            	<p:cellEditor>
+		                   <f:facet name="output">
+		                       <h:outputText value="#{detalle.precioUnitario}" >
+		                           <f:convertNumber type="currency" currencySymbol=""/>
+		                       </h:outputText>
+		                   </f:facet>
+		                   <f:facet name="input">
+		                       <p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{detalle.precioUnitario}" style="width:100%" label="Price" symbol="" > 
+		                       		<p:ajax event="change" listener="#{atencionBean.actualizarTotal(detalle)}" update="idTabDetalleRegMan  :form:tabView:idRegMan"/>
+		                       </p:inputNumber>
+		                   </f:facet>
+		               </p:cellEditor>
+		            </p:column>
+		   
+		             <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains" >
+		            	<p:cellEditor>
+		                   <f:facet name="output">
+		                       <h:outputText value="#{detalle.cantidad}" >
+		                           <f:convertNumber type="currency" currencySymbol=""/>
+		                       </h:outputText>
+		                   </f:facet>
+		                   <f:facet name="input">
+		                       <p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{detalle.cantidad}" style="width:100%" label="Price" symbol="" decimalPlaces="0" > 
+		                       		<p:ajax event="change" listener="#{atencionBean.cantidadDetalle(detalle)}" update="idTabDetalleRegMan  :form:tabView:idRegMan"/>
+		                       </p:inputNumber>
+		                   </f:facet>
+		               </p:cellEditor>
+		            </p:column>
+
+		            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+		                <h:outputText value="#{detalle.total}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+		            </p:column>
+		            
+		            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+		                <p:cellEditor>  
+	                        <f:facet name="output">
+	                            <h:outputText value="#{detalle.observacion}"/>
+	                        </f:facet>  
+	                        <f:facet name="input">
+	                            <h:inputText value="#{detalle.observacion}" style="width: 100%; height: 100%;"/>
+	                        </f:facet>  
+	                    </p:cellEditor>
+		            </p:column>
+		            
+		            <p:column width="10%" filterMatchMode="contains">
+						<p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" action="#{atencionBean.eliminarDetalleManual}" update="idTabDetalleRegMan :form:tabView:idRegMan">
+							<f:setPropertyActionListener value="#{detalle}" target="#{atencionBean.detalleRegManSelected}"  />
+						</p:commandButton>
+					</p:column>
+		    	   
+		        </p:dataTable>
+			</p:tab>
+		</p:tabView>
+				
+	</h:form>
+	
+	
+	<pe:blockUI target="dialogAtencion" widgetVar="blockUIWidgetPedido">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+	<p:dialog height="670px" modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogAtencion" header="#{atencionBean.tituloDialog}" widgetVar="atencionDialog" resizable="false" closable="true" 
+		appendTo="@(body)" style="background-color:green;" width="90%" >
+		<h:form id="formDialog">
+			<h:panelGrid columns="4" id="idCombosPlatos">
+				<p:outputLabel value="Entradas:" />
+				<p:selectOneMenu value="#{atencionBean.entradaSelected}" converter="#{atencionBean.conversorEntradaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstEntradaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}" />
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.entradaSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				 
+				<p:outputLabel value="Menu:" />
+				<p:selectOneMenu value="#{atencionBean.menuSelected}" converter="#{atencionBean.conversorMenuEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstMenuEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.menuSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Carta:" />
+				<p:selectOneMenu value="#{atencionBean.cartaSelected}" converter="#{atencionBean.conversorCartaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstCartaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.cartaSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Bebidas:" />
+				<p:selectOneMenu value="#{atencionBean.bebidaSelected}" converter="#{atencionBean.conversorBebidaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstBebidaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.bebidaSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Plato Bandera:" />
+				<p:selectOneMenu value="#{atencionBean.platoBanderaSelected}" converter="#{atencionBean.conversorPlatoBanderaEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstPlatoBanderaEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.platoBanderaSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Guarniciones:" />
+				<p:selectOneMenu value="#{atencionBean.guarnicionesSelected}" converter="#{atencionBean.conversorGuarnicionesEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstGuarnicionesEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.guarnicionesSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Postres:" />
+				<p:selectOneMenu value="#{atencionBean.postresSelected}" converter="#{atencionBean.conversorPostresEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstPostresEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.postresSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Otros:" />
+				<p:selectOneMenu value="#{atencionBean.otrosSelected}" converter="#{atencionBean.conversorOtrosEnCarta}" >
+					<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+					<f:selectItems value="#{atencionBean.lstOtrosEnCarta}" var="ps" itemLabel="#{ps.nombre} : #{ps.precio}" itemValue="#{ps}"/>
+					<p:ajax listener="#{atencionBean.agregarDetalle(atencionBean.otrosSelected)}" update="idTabDetalle, botones, idCombosPlatos" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();"/>
+				</p:selectOneMenu>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="6" id="botones"> 
+				<p:commandButton value="GUARDAR" action="#{atencionBean.saveAtencionMesa}" onstart="PF('blockUIWidgetPedido').block();" oncomplete="PF('blockUIWidgetPedido').unblock();" update="form:tabView:gridMesa :formDialog:botones"  />
+				<p:commandButton value="ELIMINAR" id="btnEliminar" oncomplete="PF('deleteProductDialogAg').show()" styleClass="ui-button-danger" rendered="#{atencionBean.atencionSelected ne null}"/>				
+				<p:commandButton value="COMANDA" actionListener="#{atencionBean.exportarComandaPDF()}" rendered="#{atencionBean.atencionSelected ne null}" icon="pi pi-file-pdf" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"  ajax="false" />
+                <p:commandButton value="CERRAR" onclick="PF('atencionDialog').hide()"></p:commandButton>
+				
+				
+				
+				<h:outputText style="" value="TOTAL: " />
+				<h:outputText style="color:blue;font-weight: bold; " value="#{atencionBean.totalDetalle}" >
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</h:panelGrid>
+			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{atencionBean.lstDetalleAtencionMesaSelected}" rowIndexVar="row"   size="small"
+	            emptyMessage="No se asignaron platos." editable="true" editMode="cell" rowKey="#{detalle.id}" selection="#{atencionBean.detalleSelected}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PEDIDOS</span>
+	                </div>
+	            </f:facet>
+	
+	            <p:column headerText="Descripcion" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.plato.nombre}" />
+	            </p:column>
+	            <p:column headerText="Entrada" width="20%" sortBy="#{detalle.platoEntrada.nombre}" filterMatchMode="contains">
+	                <p:cellEditor>  
+                        <f:facet name="output">
+                            <h:outputText value="#{detalle.platoEntrada eq null?'[-Ninguno-]':detalle.platoEntrada.nombre}" />
+                        </f:facet>  
+                        <f:facet name="input">
+                            <p:selectOneMenu value="#{detalle.platoEntrada}" converter="#{atencionBean.conversorPlatoEntrada}">
+								<f:selectItem itemLabel="[-Ninguno-]" itemValue="#{null}" />
+								<f:selectItems value="#{atencionBean.lstPlatoEntrada}" var="ps" itemLabel="#{ps.nombre}" itemValue="#{ps}"/>
+							</p:selectOneMenu>
+                        </f:facet>  
+                    </p:cellEditor>
+	            </p:column>
+	            
+	            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.precioUnitario}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains">
+            
+            		<h:outputText value="#{detalle.cantidad}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+		            <p:commandButton style="margin-left:10px" icon="pi pi-minus" styleClass="rounded-button ui-button-secondary" action="#{atencionBean.disminuyeDetalle(detalle)}" update="idTabDetalle :formDialog:botones" />
+		            <p:commandButton style="margin-left:10px" icon="pi pi-plus" styleClass="rounded-button ui-button-secondary" action="#{atencionBean.aumentarDetalle(detalle)}" update="idTabDetalle :formDialog:botones"/> 
+					
+	                    
+	            </p:column>
+	            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.total}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+	            	<h:inputText value="#{detalle.observacion}" style="width: 100%; height: 100%;" maxlength="200"/>
+	               
+	            </p:column>
+	            
+	            <p:column width="10%" filterMatchMode="contains">
+					<p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" oncomplete="PF('deleteDetalleDialog').show()">
+						<f:setPropertyActionListener value="#{detalle}" target="#{atencionBean.detalleSelected}"  />
+					</p:commandButton>
+				</p:column>
+	    	   
+	        </p:dataTable>
+		</h:form>
+	</p:dialog>
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogAtencionChef" widgetVar="atencionDialogChef" header="#{atencionBean.tituloDialog}" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialogChef">
+			<h:panelGrid columns="1" id="idAP" > 
+				<p:commandButton action="#{atencionBean.pasarPendiente}" id="btnPen" value="Atendido" style="margin-left:10px" styleClass="rounded-button ui-button-info" process="@this" update=":form:tabView:idTableChef :formDialogChef:idAP" rendered="#{atencionBean.atencionChefSelected.estadoChef eq 'Atendido'}" />
+				<p:commandButton action="#{atencionBean.pasarAtendido}" id="btnAte" value="Pendiente" style="margin-left:10px" styleClass="rounded-button ui-button-warning" process="@this" update=":form:tabView:idTableChef :formDialogChef:idAP" rendered="#{atencionBean.atencionChefSelected.estadoChef eq 'Pendiente'}" />
+		
+			</h:panelGrid>
+			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{atencionBean.lstDetalleAtencionMesaSelected}" rowIndexVar="row" rows="15" paginator="true" size="small"
+	    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PEDIDOS</span>
+	                </div>
+	            </f:facet>
+	
+	            <p:column headerText="Plato" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.plato.nombre}" />
+	            </p:column>
+	            <p:column headerText="Entrada" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.platoEntrada.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.precioUnitario}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains">
+            
+            		<h:outputText value="#{detalle.cantidad}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>	                    
+	            </p:column>
+	            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.total}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+	            	<h:outputText value="#{detalle.observacion}"/>
+	            </p:column>
+	    	   
+	        </p:dataTable>
+		</h:form>
+	</p:dialog>
+	
+	 <pe:blockUI target="dialogGeneraDoc" widgetVar="blockUIWidgetBloqueoDialog">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	
+	<p:dialog modal="true" responsive="true" width="100%" dynamic="true" closeOnEscape="true" id="dialogGeneraDoc" header="GENERAR DOCUMENTO DE VENTA" widgetVar="dialogGeneraDoc" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto" height="900px">
+		<h:form id="formGeneraDoc">
+		
+			<h:panelGrid columns="9" >
+
+				<h:outputLabel value="Documento:" />
+				<p:selectOneMenu id="idTipoComprobante" value="#{atencionBean.tipoDocumentoSelected}" converter="#{atencionBean.conversorTipoDocumentoFac}" style="margin:5px; width:100px" >
+					<f:selectItems value="#{atencionBean.lstTipoDocumentoFac}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+					<p:ajax listener="#{atencionBean.listarSerie}" update="formGeneraDoc:optionSerie formGeneraDoc:num formGeneraDoc:pnl " onstart="PF('blockUIWidgetBloqueoDialog').block();" oncomplete="PF('blockUIWidgetBloqueoDialog').unblock();"/>
+				</p:selectOneMenu>
+				
+				<h:outputLabel value="Serie-Número:" />
+
+				<p:selectOneMenu id="optionSerie" value="#{atencionBean.serieDocumentoSelected}" converter="#{atencionBean.conversorSerie}" style="margin:10px">
+					<f:selectItems value="#{atencionBean.lstSerieDocumento}" var="serie" itemLabel="#{serie.serie}" itemValue="#{serie}" />
+					<p:ajax listener="#{atencionBean.cambiarSerie}" update="formGeneraDoc:num" onstart="PF('blockUIWidgetBloqueoDialog').block();" oncomplete="PF('blockUIWidgetBloqueoDialog').unblock();"/> 
+				</p:selectOneMenu>
+				<p:outputLabel value="-" style="font-weight: bolder"/>
+				<p:inputText value="#{atencionBean.numero}"  style="margin:10px" id="num" disabled="true"/>
+
+			</h:panelGrid>
+			
+			<p:panel id="pnlCond" header="Condiciones de venta" toggleable="true" toggleSpeed="500" widgetVar="panelCondVen" style="width:60%; margin-top:10px;">		
+				<h:panelGrid columns="4" width="100%">
+					<h:outputText value="Tipo Pago: " />
+					<p:selectOneMenu value="#{atencionBean.atencionCobrarSelected.tipoPago}">
+						<f:selectItem itemLabel="Efectivo" itemValue="Efectivo" />
+					</p:selectOneMenu>
+					<h:outputLabel  value="Monto: " />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","   value="#{atencionBean.atencionCobrarSelected.monto}" emptyValue="zero" > 
+						<p:ajax listener="#{atencionBean.calcularTipoPago}" update=":formGeneraDoc:pnlCond" onstart="PF('blockUIWidgetBloqueoDialog').block();" oncomplete="PF('blockUIWidgetBloqueoDialog').unblock();"/>						                						              
+					</p:inputNumber>
+					
+					<h:outputText value="Tipo Pago: " />
+					<p:selectOneMenu value="#{atencionBean.atencionCobrarSelected.tipoPago2}">
+						<f:selectItem itemLabel="POS-YAPE" itemValue="POS-YAPE" />
+						<f:selectItem itemLabel="POS-PLIN" itemValue="POS-PLIN" />
+						<f:selectItem itemLabel="POS-T DEBITO" itemValue="POS-T DEBITO" />
+						<f:selectItem itemLabel="POS-T CREDITO" itemValue="POS-T CREDITO" />
+					</p:selectOneMenu>
+					
+					<h:outputLabel  value="Monto: " />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","   value="#{atencionBean.atencionCobrarSelected.monto2}" emptyValue="zero"> 
+						<p:ajax listener="#{atencionBean.calcularTipoPago2}" update=":formGeneraDoc:pnlCond" onstart="PF('blockUIWidgetBloqueoDialog').block();" oncomplete="PF('blockUIWidgetBloqueoDialog').unblock();"/>						                						              
+					</p:inputNumber>
+					
+					<p:selectOneRadio id="line" value="#{atencionBean.porConsumo}" layout="lineDirection">
+			            <f:selectItem itemLabel="Detallado" itemValue="#{false}"/>
+			            <f:selectItem itemLabel="Por Consumo" itemValue="#{true}"/>
+			            <p:ajax update="formGeneraDoc:idTableDetalleDocVenta" listener="#{atencionBean.validaGeneraDocumento}" onstart="PF('blockUIWidgetBloqueoDialog').block();" oncomplete="PF('blockUIWidgetBloqueoDialog').unblock();"/>
+			        </p:selectOneRadio>
+		
+				</h:panelGrid>
+				
+			</p:panel>
+			
+			<h:panelGrid style="width:60%;float:left" columns="1" > 
+				<p:panel id="pnl" header="Datos del Cliente" toggleable="true" toggleSpeed="500" widgetVar="panelDatos" style="width:100%">
+					<h:panelGrid styleClass="companyHeaderGrid" >
+						
+						<p:row> 
+						
+							<p:column>
+								<h:outputText value="Buscar:" />
+								
+								<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{atencionBean.clienteSelected}" converter="#{atencionBean.conversorCliente}" completeMethod="#{atencionBean.completeCliente}"  
+					                  var="cli" itemLabel="#{cli.dniRuc}" itemValue="#{cli}" forceSelection="true" style="margin:5px;" >
+					            	<p:column width="400px">
+					                	<h:outputLabel value="#{cli.dniRuc}" />
+					                </p:column>
+					                <p:column width="400px">
+					                	<h:outputLabel value="#{cli.razonSocial}" /> 
+					                </p:column> 
+					                <p:ajax event="change" listener="#{atencionBean.onChangeCliente}" update=":formGeneraDoc:pnl" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>						                						              
+					            </p:autoComplete>
+							</p:column>
+						
+						</p:row>
+						
+						<p:row>
+							<p:column>
+								<h:outputText value="RUC: " rendered="#{atencionBean.tipoDocumentoSelected.abreviatura eq 'F'}" />
+								<h:outputText value="DNI: " rendered="#{atencionBean.tipoDocumentoSelected.abreviatura eq 'B' or atencionBean.tipoDocumentoSelected.abreviatura eq 'N'}" />
+							</p:column>
+							
+							<p:column>
+								<p:inputText id="txt_dniRuc" style="width:420px;" label="" value="#{atencionBean.dniRucText}" maxlength="11" > 
+									<p:ajax event="blur" listener="#{atencionBean.buscar}" update="txt_nombre, txt_direccion"/>
+								</p:inputText>
+							</p:column>
+							
+							
+							<p:column>
+								<h:outputText style="margin-left:20px" value="Nombre: " rendered="#{atencionBean.tipoDocumentoSelected.abreviatura eq 'B' or atencionBean.tipoDocumentoSelected.abreviatura eq 'N'}" />
+								<h:outputText style="margin-left:20px" value="Razón Social: " rendered="#{atencionBean.tipoDocumentoSelected.abreviatura eq 'F'}" />
+							</p:column>
+							
+							<p:column>
+								<p:inputText id="txt_nombre" style="width:420px;" label="" value="#{atencionBean.razonSocialText}" maxlength="100" /> 
+							</p:column>
+
+						</p:row>
+						<p:row>
+							<p:column>
+								<h:outputText value="Dirección: " />
+							</p:column>
+							<p:column colspan="3">
+								<p:inputText id="txt_direccion" style="width:800px;" label="" value="#{atencionBean.direccionText}" maxlength="200" />
+							</p:column>
+
+						</p:row>
+						<p:row>
+							<p:column>
+								<h:outputText value="E-mail 1: " />
+							</p:column>
+							<p:column colspan="3">
+								<p:inputText style="width:800px;" label="" value="#{atencionBean.email1Text}" />
+							</p:column>
+
+						</p:row>
+						<p:row>
+							<p:column>
+								<h:outputText value="E-mail 2: " />
+							</p:column>
+							<p:column colspan="3">
+								<p:inputText style="width:800px;" label="" value="#{atencionBean.email2Text}" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<h:outputText value="E-mail 3: " />
+							</p:column>
+							<p:column colspan="3">
+								<p:inputText style="width:800px;" label="" value="#{atencionBean.email2Text}" />
+							</p:column>
+						</p:row>
+						
+						
+					</h:panelGrid>
+					<p:commandButton value="Guardar" actionListener="#{atencionBean.validarFormularioDocumentoVenta()}"  style="margin-left:10px" icon="pi pi-save"  />
+					<p:commandButton value="Cancelar" oncomplete="PF('cancelarDocumento').show()"   style="margin-left:10px" icon="pi pi-times"  />
+					<p:commandButton value="PRE- CUENTA" actionListener="#{atencionBean.exportarCuentaPDF()}" style="margin-left:10px" icon="pi pi-file-pdf"  ajax="false" />
+							
+				</p:panel>
+				
+			</h:panelGrid>
+			
+			<h:panelGrid id="gridMontos" style="width:25%;float:right;" columns="1" >	
+				<p:panel  header="Montos" toggleable="true" toggleSpeed="500" widgetVar="panelMontos" >
+					<h:panelGrid id="pnlMontos" columns="3" styleClass="companyHeaderGrid">
+					
+						<h:outputText value="Anticipos:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.anticipos}" />
+						
+						<h:outputText value="Op. Gravada:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.opGravada}" />
+
+						<h:outputText value="Op. Exonerada:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.opExonerada}" />
+
+						<h:outputText value="Op. Inafecta:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.opInafecta}"  />
+
+						<h:outputText value="Op. Gratuita:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.opGratuita}"  />
+
+						<h:outputText value="Descuentos:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.descuentos}"  />
+
+						<h:outputText value="ISC:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.ISC}" />
+
+						<h:outputText value="IGV:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.IGV}" />
+
+						<h:outputText value="Otros Cargos:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.otrosCargos}" />
+
+						<h:outputText value="Otros Tributos:" />
+						<h:outputText value="S/"/>
+           				<h:outputText value="#{atencionBean.otrosTributos}" />
+		
+						<h:outputText value="Importe Total:" style="margin-right:20px;font-weight: bolder" />
+						<h:outputText value="S/" style="font-weight: bolder"/>
+						<h:outputText value="#{atencionBean.importeTotal}" style="font-weight: bolder" />
+						
+					</h:panelGrid>
+				</p:panel>
+
+			</h:panelGrid>
+			
+			<h:panelGrid  style="width:100%;float:left">  
+					
+				<p:dataTable var="detalle" id="idTableDetalleDocVenta" value="#{atencionBean.lstDetalleDocumentoVenta}" widgetVar="detalleTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+				emptyMessage="No se encontraron detalles de documento de venta." editable="true"  editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}"  selectionMode="single" selection="#{atencionBean.detalleDocumentoVentaSelected}">
+		
+					
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Detalles de Venta</span>
+						</div>
+					</f:facet>   
+					
+					<p:column style="width:42px;text-align: left">
+						<f:facet name="header"> 
+							
+							<p:commandButton icon="pi pi-plus" actionListener="#{atencionBean.agregarDetalle}" update=":formGeneraDoc:idTableDetalleDocVenta" styleClass="rounded-button ui-button-success" />
+							
+						</f:facet>
+					</p:column>
+											
+			        <p:column headerText="Nro"  width="25px" filterMatchMode="contains">
+						#{row +1}
+					</p:column>
+					
+					<p:column headerText="Producto" filterMatchMode="contains" >
+						
+						
+						<p:cellEditor>
+		                    <f:facet name="output">
+		                        <h:outputText value="#{detalle.producto eq null ? '[-Seleccionar-]': detalle.producto.descripcion}" />
+		                    </f:facet>
+		                    <f:facet name="input">
+		                        <p:selectOneMenu value="#{detalle.producto}" converter="#{atencionBean.conversorProducto}" style="margin:5px; width:130px" >
+									<f:selectItems value="#{atencionBean.lstProducto}" var="prod" itemLabel="#{prod.descripcion}" itemValue="#{prod}"/>
+								</p:selectOneMenu>
+		                    </f:facet>	
+		                </p:cellEditor>
+						
+					</p:column>
+					
+					<p:column headerText="Descripción" filterMatchMode="contains" style="width:500px">
+						<p:cellEditor>
+		                    <f:facet name="output">
+		                        <h:outputText value="#{detalle.descripcion}"/>
+		                    </f:facet>
+		                    <f:facet name="input">
+		                        <p:inputText value="#{detalle.descripcion}" style="width:90%" />
+		                
+		                    </f:facet>	
+		                </p:cellEditor>
+					</p:column>
+					
+					<p:column headerText="Cantidad" filterMatchMode="contains">
+						<h:outputText value="#{detalle.cantidad}"/>
+					</p:column>
+					
+					<p:column headerText="Precio Unitario" filterMatchMode="contains">
+						<h:outputText value="#{detalle.precioUnitario}"/>
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{detalle.total}"/>
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{detalle.total}"/>
+					</p:column>
+					
+					<p:column width="10%" filterMatchMode="contains">
+						<p:commandButton   icon="pi pi-trash" styleClass="rounded-button ui-button-danger" action="#{atencionBean.eliminarDetalleVenta(row)}" 
+						update=":formGeneraDoc:idTableDetalleDocVenta :formGeneraDoc:gridMontos :formGeneraDoc:pnl :formGeneraDoc:idTipoComprobante" />
+					</p:column>
+			
+				</p:dataTable>
+				
+				
+				<p:panel id="pnlCondVenta" header="Condiciones de venta" toggleable="true" toggleSpeed="500" widgetVar="panelCondVen" style="width:100%; margin-top:10px;">
+					<h:panelGrid styleClass="companyHeaderGrid" columns="6">  
+						<p:row> 
+							<p:column>
+								<h:outputText value="Tipo Pago: " />
+								<h:selectOneMenu value="#{atencionBean.tipoPago}" unselectable="false">
+									<f:selectItem itemLabel="Contado" itemValue="Contado" />
+								</h:selectOneMenu>
+							</p:column>
+	
+							<p:column>
+								<h:outputText value="Moneda: " style="margin-left:10px" />
+								<h:selectOneMenu value="#{atencionBean.moneda}" unselectable="false">
+									<f:selectItem itemLabel="Soles" itemValue="S" />
+								</h:selectOneMenu>
+								
+								<h:outputText value="Con IGV: " style="margin-left:10px" />
+								<h:selectOneMenu value="#{atencionBean.incluirIgv}" unselectable="false">
+									<f:selectItem itemLabel="SI" itemValue="#{true}" />
+									<f:selectItem itemLabel="NO" itemValue="#{false}" />
+								</h:selectOneMenu>
+	
+							</p:column>
+							
+						</p:row>
+					</h:panelGrid>
+				</p:panel>
+			</h:panelGrid>
+	
+		</h:form>
+	</p:dialog>
+	
+	<p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogDocumentoVenta" header="DOCUMENTO DE VENTA" widgetVar="docVentDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="background-color:green;" width="80%" >
+		<h:form id="formDocumentoVentaDialog">
+
+			<h:panelGrid width="100%" columns="2" styleClass="companyHeaderGrid"> 
+			
+				<p:graphicImage  value="#{navegacionBean.sucursalLogin.id eq 1?'/recursos/images/LOGO.png':'/recursos/images/LOGO_ABARCA.png'}"  library="demo" style="width:150px"/>	
+
+	        	<h:panelGrid columns="1" style="float:right" >	
+	        		<h:panelGrid columns="1" >	
+	        			<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.tipoDocumento.descripcion} N° #{atencionBean.atencionCobrarSelected.documentoVenta.serie}-#{atencionBean.atencionCobrarSelected.documentoVenta.numero}" style="width : 100px;color:#337CFF;font-size: 20px;"/>				
+					</h:panelGrid>
+					<h:panelGrid columns="2" >	
+						<h:outputText value="Fecha Emisión:" style="float:right"/>
+		        		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.fechaEmision}" style="float:right" > 
+		        			<f:convertDateTime pattern="dd/MM/yyyy" />
+		        		</h:outputText>
+					</h:panelGrid>
+					
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" styleClass="companyHeaderGrid">
+	
+				<h:outputText value="DNI / RUC" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.ruc}" />
+				
+				<h:outputText value="Cliente:" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.razonSocial}" />
+	
+				<h:outputText value="Dirección:" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.direccion}" />
+	
+				<h:outputText value="Tipo Pago:" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.tipoPago}"  />
+	        	
+	        	<h:outputText value="Moneda:" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.tipoMoneda eq 'S'?'Soles':'Dólares'}"  />
+	        	
+	        	<h:outputText value="Observación:" />
+	        	<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.observacion}"  />
+	        	
+	        	<h:outputText value="Correo 1:" />
+		        <h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.cliente.email1Fe}" id="textoEditado"/>
+		        
+		        <h:outputText value="Correo 2:" />
+		        <h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.cliente.email2Fe}" id="textoEditado2"/>
+		        
+		        <h:outputText value="Correo 3:" />
+		        <h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.cliente.email3Fe}" id="textoEditado3"/>
+	
+			</h:panelGrid>   
+				
+			<h:panelGrid>
+		
+				<p:dataTable var="det" id="idTableDetalleDocumento" value="#{atencionBean.lstDetalleDocumentoVentaSelected}"  rowIndexVar="row" paginator="true" rows="15" size="small"
+				emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" >
+	
+					<p:column headerText="Cantidad" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.cantidad}"/>
+					</p:column>
+					
+					<p:column headerText="Descripción" filterMatchMode="contains" style="text-align:center;width:400px" >
+						<h:outputText value="#{det.descripcion}"  style="width:400px"/>
+					</p:column>
+					
+					<p:column headerText="Precio Unitario" filterMatchMode="contains" style="text-align:center;width:400px" >
+						<h:outputText value="#{det.precioUnitario}"  style="width:400px"/>
+					</p:column>
+	
+					<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.total}"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+			
+				</p:dataTable>
+	
+			</h:panelGrid>
+			
+			<h:panelGrid style="width:50%;float:left;" columns="1" >	
+				<h:panelGrid  columns="2" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Son:" />
+	         		<h:outputText value="#{atencionBean.montoLetra}" />
+	
+				</h:panelGrid>
+	
+			</h:panelGrid>
+				
+			<h:panelGrid style="width:50%;float:right;" columns="1" >	
+				<h:panelGrid style="float:right"  columns="3" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Sub-Total:" />
+					<h:outputText value="S/" />	         		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.subTotal}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+				
+					<h:outputText value="Igv:" />
+					<h:outputText value="S/" />		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.igv}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+					<h:outputText value="Total:" style="color:blue"/>
+					<h:outputText value="S/" style="color:blue"/>	         		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.total}" style="color:blue"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" >
+				<p:commandButton value="Descargar" actionListener="#{atencionBean.exportarPDF()}"  icon="pi pi-file-pdf" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"  ajax="false" />
+			</h:panelGrid>  
+		
+				
+		</h:form>
+	</p:dialog>
+	
+	
+	<p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogDetallePedido" header="DETALLE DE PEDIDO" widgetVar="detallePedidoDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="background-color:green;" width="80%" >
+		<h:form id="formDetallePedidoDialog">				
+		
+			<p:dataTable reflow="true" var="detalle"  value="#{atencionBean.lstDetalleAtencionMesaSelected}" rowIndexVar="row" rows="15" paginator="true" size="small"
+    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE DETALLES</span>
+	                </div>
+	            </f:facet>
+	
+	            <p:column headerText="Plato" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.plato.nombre}" />
+	            </p:column>
+	            <p:column headerText="Entrada" width="20%" sortBy="#{detalle.plato.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.platoEntrada.nombre}" />
+	            </p:column>
+	            <p:column headerText="Precio Uni." width="10%" sortBy="#{detalle.precioUnitario}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.precioUnitario}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Cantidad" width="10%" sortBy="#{detalle.cantidad}" filterMatchMode="contains">
+            
+            		<h:outputText value="#{detalle.cantidad}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>	                    
+	            </p:column>
+	            <p:column headerText="Total" width="10%" sortBy="#{detalle.total}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.total}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Observación" width="20%" sortBy="#{detalle.observacion}" filterMatchMode="contains">
+	            	<h:outputText value="#{detalle.observacion}"/>
+	            </p:column>
+	    	   
+	        </p:dataTable>
+	
+			
+	
+				
+			<h:panelGrid style="width:50%;float:right;" columns="1" >	
+				<h:panelGrid style="float:right"  columns="3" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Sub-Total:" />
+					<h:outputText value="S/" />	         		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.subTotal}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+				
+					<h:outputText value="Igv:" />
+					<h:outputText value="S/" />		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.igv}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+					<h:outputText value="Total:" style="color:blue"/>
+					<h:outputText value="S/" style="color:blue"/>	         		
+	         		<h:outputText value="#{atencionBean.atencionCobrarSelected.documentoVenta.total}" style="color:blue"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+				</h:panelGrid>
+			</h:panelGrid>
+					
+		</h:form>
+	</p:dialog>
+	
+	
+	
+
+	<p:confirmDialog widgetVar="deleteProductDialogAg" showEffect="fade" width="300" message="¿Deseas eliminar el pedido?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update="form:tabView:gridMesa :formDialog:botones :formDialog:idTabDetalle" oncomplete="PF('deleteProductDialogAg').hide()" actionListener="#{atencionBean.eliminarAtencionMesa}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('deleteProductDialogAg').hide()" />
+    </p:confirmDialog>
+    
+    <p:confirmDialog widgetVar="deleteDetalleDialog" showEffect="fade" width="300" message="¿Deseas eliminar el item?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update="form:tabView:gridMesa :formDialog:botones :formDialog:idTabDetalle" oncomplete="PF('deleteDetalleDialog').hide()" actionListener="#{atencionBean.eliminarDetalle}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('deleteDetalleDialog').hide()" />
+    </p:confirmDialog>
+    
+    <p:confirmDialog widgetVar="saveRegistroManualDialog" showEffect="fade" width="300" message="¿Deseas guardar el registro?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update="form:tabView:idRegMan :form:tabView:idTabDetalleRegMan" oncomplete="PF('saveRegistroManualDialog').hide()" actionListener="#{atencionBean.saveRegistroManual}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('saveRegistroManualDialog').hide()" />
+    </p:confirmDialog>
+    
+    <p:confirmDialog id="saveDocumento" message="¿Está seguro de guardar el documento de venta?" header="Confirmación" severity="alert" widgetVar="saveDocumento" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetDocumento').block();" oncomplete="PF('blockUIWidgetDocumento').unblock();PF('saveDocumento').hide();PF('dialogGeneraDoc').hide()"  action="#{atencionBean.saveDocumentoVenta()}" update=":formGeneraDoc :form:tabView:idTableCobrar"/>
+            <p:commandButton value="NO" oncomplete="PF('saveDocumento').hide()"/>           
+        </h:form>
+    </p:confirmDialog>
+     <pe:blockUI target="saveDocumento" widgetVar="blockUIWidgetDocumento">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+    <pe:blockUI target="eliminarPedidoDialog" widgetVar="blockUIWidgetEliminarPedido">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog widgetVar="eliminarPedidoDialog" id="eliminarPedidoDialog" showEffect="fade" width="300" message="¿Deseas eliminar el pedido?" header="Confirmación" severity="warn" appendTo="@(body)">
+        <p:commandButton value="Si" icon="pi pi-check" process="@this" update=":form:tabView:idTableCobrar" onstart="PF('blockUIWidgetEliminarPedido').block();" oncomplete="PF('eliminarPedidoDialog').hide(); PF('blockUIWidgetEliminarPedido').unblock();" actionListener="#{atencionBean.eliminarPedido}" />
+        <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('eliminarPedidoDialog').hide()" />
+    </p:confirmDialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+   
+    
+    
+    <script type="text/javascript">
+
+        function hacerClick(elementName) {
+            element = document.getElementById(elementName);
+            element.click();
+        }
+
+        function modificarPlato(xhr, status, args) {
+            if (!args.noEsValido) {
+                PF('platoDialog').show();
+            } 
+        }
+    </script> 
+	
+</ui:composition>

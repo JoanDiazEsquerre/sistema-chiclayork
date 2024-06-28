@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:f="http://java.sun.com/jsf/core">
+	
+	
+ 
+    <f:view contentType="text/html">
+        <h:head>
+<!--             <link href="./recursos/css/principal.css" rel="stylesheet" type="text/css" /> -->
+            <script language="javascript" type="text/javascript" src="./recursos/js/j18n.js"></script>
+            <link rel="shortcut icon" href="./recursos/images/logito.ico"/>
+            <title>..:: SISTEMA ALDASA :..</title>                       
+            	<p:growl autoUpdate="true" id="growl1" showDetail="true" sticky="true" />
+                
+        </h:head>
+        <h:body style="font-size: 11px;  " >            
+        
+        	<pe:layout id="fullPage" stateCookie="true"
+				widgetVar="fpLayoutWidget">
+
+				<pe:layoutPane position="north" size="40" closable="false">
+					<div style="width: 100%">
+						<p:graphicImage value="/recursos/images/LOGO.png" width="10%" library="demo"/>
+						<div style="float: right;">
+								<p:linkButton value="Salir" href="#{request.contextPath}/logout"
+								style="margin-right:10px;" />								
+						</div>
+						<div style="float: right;">
+							 <h:outputText value="#{navegacionBean.usuarioLogin.profile.name}: #{navegacionBean.usuarioLogin.person.surnames} #{navegacionBean.usuarioLogin.person.names}" style="font-weight: bold; font-size: 18px;  color: #666666;margin-right:10px;text-transform: uppercase; margin-top: 5px  " /> 
+
+						</div>
+						
+						
+					</div>
+				</pe:layoutPane>
+				<pe:layoutPane position="center">
+				<ui:insert name="contenido"></ui:insert>
+
+			</pe:layoutPane>
+				<pe:layoutPane position="west">
+				<h:form id="formMenu">
+					<p:menu toggleable="true">
+						<p:submenu label="Prospección" rendered="#{navegacionBean.menuProspeccion}">
+			                <p:menuitem value="Prospectos" icon="pi pi-users" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getProspectosPage()}" rendered="#{navegacionBean.subMenuProspectos}"/> 
+							<p:menuitem value="Prospección" icon="pi pi-book" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getProcesoProspeccionPage()}" rendered="#{navegacionBean.subMenuProspeccion}" />
+							<p:menuitem value="Agenda" icon="pi pi-calendar" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getProcesoAgendaPage()}" rendered="#{navegacionBean.subMenuAgenda}"/>
+			            </p:submenu>
+						<p:submenu label="Mantenimientos" rendered="#{navegacionBean.menuMantenimiento}">
+							<p:menuitem value="Personas" ajax="false" icon="pi pi-user-plus" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoPersonasPage()}"  rendered="#{navegacionBean.subMenuPersonas}"/>						
+							<p:menuitem value="Usuarios" ajax="false" icon="pi pi-users" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoUsersPage()}" rendered="#{navegacionBean.subMenuUsuarios}"/>
+							<p:menuitem value="Perfiles" ajax="false" icon="pi pi-unlock" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoProfilePage()}" rendered="#{navegacionBean.subMenuPerfiles}" />
+							<p:menuitem value="Proyectos" ajax="false" icon="pi pi-home" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoProjectPage()}" rendered="#{navegacionBean.subMenuProyectos}"/>
+							<p:menuitem value="Equipos" ajax="false" icon="pi pi-sitemap" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoTeamPage()}" rendered="#{navegacionBean.subMenuEquipos}"/>
+							<p:menuitem value="Cambiar Contraseña" ajax="false" icon="pi pi-lock" update=":contenedor" actionListener="#{navegacionBean.getMantenimientoPasswordchangePage()}" rendered="#{navegacionBean.subMenuCambiarContrasenia}" />
+						</p:submenu>
+						<p:submenu label="Reportes" rendered="#{navegacionBean.menuReporte}">
+							<p:menuitem value="Reporte Acciones"  icon="pi pi-upload" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getProcesoReporteProspeccionPage()}" rendered="#{navegacionBean.subMenuReporteAcciones}"/>
+						</p:submenu>
+					</p:menu>
+					</h:form>
+				</pe:layoutPane>
+			</pe:layout>
+
+        </h:body>
+     
+    </f:view>
+</html>

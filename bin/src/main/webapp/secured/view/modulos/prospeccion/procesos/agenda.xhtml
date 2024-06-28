@@ -1,0 +1,49 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+	<!-- 				<p:growl autoUpdate="true" id="growl1" showDetail="true" sticky="true" /> -->
+	<f:metadata>
+    	<f:event type="preRenderView" listener="#{agendaBean.onPageLoad}"/>
+    </f:metadata>
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">AGENDA</h2>
+       	<p:schedule id="schedule" value="#{agendaBean.lazyEventModel}" widgetVar="myschedule" height="auto"  > 
+           	<p:ajax event="eventSelect" listener="#{agendaBean.onEventSelect}" update=":formDialog:eventDetails :scheduleDialog" oncomplete="PF('myscheduleDialog').show();" />
+       	</p:schedule>
+
+	</h:form>
+	
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="scheduleDialog" header="#{agendaBean.prospectionDetailSelected.action.description}" widgetVar="myscheduleDialog" resizable="false" closable="false"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formDialog">
+			<h:panelGrid id="eventDetails" columns="2" cellpadding="7">
+				<p:outputLabel for="prospect" value="Prospecto:" styleClass="font-bold"/>
+                <p:outputLabel id="prospect" value="#{agendaBean.prospectionDetailSelected.prospection.prospect.person.surnames} #{agendaBean.prospectionDetailSelected.prospection.prospect.person.names}"/>
+				
+				<p:outputLabel for="asesor" value="Asesor:" styleClass="font-bold"/>
+                <p:outputLabel id="asesor" value="#{agendaBean.prospectionDetailSelected.prospection.personAssessor.surnames} #{agendaBean.prospectionDetailSelected.prospection.personAssessor.names}"/>
+                
+                <p:outputLabel for="sup" value="Supervisor:" styleClass="font-bold"/>
+                <p:outputLabel id="sup" value="#{agendaBean.prospectionDetailSelected.prospection.personSupervisor.surnames} #{agendaBean.prospectionDetailSelected.prospection.personSupervisor.names}"/>
+                
+				<p:outputLabel for="date" value="Fecha y hora:" styleClass="font-bold"/>
+                <p:outputLabel id="date" value="#{agendaBean.prospectionDetailSelected.date}"/>
+                
+                <p:outputLabel for="com" value="Comentario:" styleClass="font-bold"/>
+                <p:outputLabel id="com" value="#{agendaBean.prospectionDetailSelected.comment	}"/>
+
+            </h:panelGrid>
+
+            <div class="flex justify-content-between mt-3">
+                <p:commandButton value="Realizar" style="margin:10px" update=":form:schedule" actionListener="#{agendaBean.realizarAction}" oncomplete="PF('myscheduleDialog').hide();"/>
+                <p:commandButton value="Cerrar" oncomplete="PF('myscheduleDialog').hide();" update=":form:schedule" styleClass="font-bold ui-button-outlined"/>
+            </div>
+ 
+		</h:form>
+	</p:dialog>
+</ui:composition>

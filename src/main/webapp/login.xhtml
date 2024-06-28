@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Inicio de Sesión</title>
+</h:head>
+<h:body>
+    <h:form id="loginForm">
+        <p:messages autoUpdate="true"/>
+        <p:panel header="Inicio de Sesión">
+            <h:panelGrid columns="2">
+                <h:outputLabel value="Usuario:" for="username"/>
+                <p:inputText id="username" name="username" value="#{loginBean.username}"/>
+
+                <h:outputLabel value="Contraseña:" for="password"/>
+                <p:password id="password" name="password" value="#{loginBean.password}"/>
+            </h:panelGrid>
+
+            <p:commandButton value="Ingresar" action="#{loginBean.doLogin}"  />
+
+        </p:panel>
+    </h:form>
+</h:body>
+</html>

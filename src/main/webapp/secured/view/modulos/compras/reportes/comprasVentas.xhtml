@@ -1,0 +1,68 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">REPORTES > COMPRAS VENTAS</h2>
+			<h:panelGrid columns="6" id="gridOpc" > 
+				Del: 
+				<p:datePicker value="#{compraVentaBean.fechaIni}"/> 
+					
+				Al:
+				<p:datePicker value="#{compraVentaBean.fechaFin}"/> 
+				
+				<p:commandButton value="Buscar" actionListener="#{compraVentaBean.buscar()}" update="idTableCompraVenta"/>
+				
+				<p:commandButton value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{compraVentaBean.procesarExcel()}" icon="pi pi-file-excel" styleClass="mr-2">
+	            <p:fileDownload value="#{compraVentaBean.fileDes}"/> 
+	      		</p:commandButton>					
+			</h:panelGrid> 
+			
+			<p:dataTable id="idTableCompraVenta" var="cv" value="#{compraVentaBean.lstCompraVenta}" rowIndexVar="row" paginator="true" rows="15" size="small" 
+			emptyMessage="No se encontraton reportes.">
+			
+	            <p:column headerText="Fecha">
+	                <h:outputText value="#{cv.fecha}" > 
+						<f:convertDateTime pattern="dd/MM/yyyy" />
+					</h:outputText>
+	            </p:column>
+	
+	            <p:column headerText="Monto Compra">
+	                <h:outputText value="#{cv.montoCompra}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	
+	            <p:column headerText="Monto Venta">
+	                <h:outputText value="#{cv.montoVenta}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+                <p:column headerText="Monto Venta Crédito">
+	                <h:outputText value="#{cv.montoVentaCredito}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            
+	            <p:column headerText="Monto Venta Contado">
+	                <h:outputText value="#{cv.montoVentaContado}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	
+	            <p:column headerText="Ganancias">
+	                <h:outputText value="#{cv.calculo}">
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	        </p:dataTable>
+			
+	</h:form>
+	
+</ui:composition>

@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:f="http://java.sun.com/jsf/core">
+	
+	
+ 
+    <f:view contentType="text/html">
+        <h:head>
+<!--             <link href="./recursos/css/principal.css" rel="stylesheet" type="text/css" /> -->
+            <script language="javascript" type="text/javascript" src="./recursos/js/j18n.js"></script>
+            <link rel="shortcut icon" href="./recursos/images/logito.ico"/>
+            <title>..:: SISTEMA RESTAURANTE :..</title>                       
+            	<p:growl autoUpdate="true" id="growl1" showDetail="true" />
+                
+        </h:head>
+        <h:body style="font-size: 11px;  " >            
+        
+        	<pe:layout id="fullPage" stateCookie="true"
+				widgetVar="fpLayoutWidget">
+
+				<pe:layoutPane position="north" size="40" closable="false">
+					<div style="width: 100%">
+						<p:graphicImage value="/recursos/images/LOGO.png" width="8%" library="demo"/>
+						<div style="float: right;">
+								<p:linkButton value="Salir" href="#{request.contextPath}/logout"
+								style="margin-right:10px;" />								
+						</div>
+						<div style="float: right;">
+							 <h:outputText value="#{navegacionBean.usuarioLogin.perfil.nombre}: #{navegacionBean.usuarioLogin.persona.apellidos} #{navegacionBean.usuarioLogin.persona.nombres}" style="font-weight: bold; font-size: 18px;  color: #666666;margin-right:10px;text-transform: uppercase; margin-top: 5px  " /> 
+
+						</div>
+						
+						
+					</div>
+				</pe:layoutPane>
+				<pe:layoutPane position="center">
+				<ui:insert name="contenido"></ui:insert>
+
+			</pe:layoutPane>
+				<pe:layoutPane position="west" >
+				<h:form id="formMenu">
+					<p:menu toggleable="true">
+						<p:submenu label="ATENCION" rendered="#{navegacionBean.menuPlatos}">
+			            	<p:menuitem value="Mesas" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoMesasPage()}" rendered="#{navegacionBean.subMenuMesas}"/>
+			            </p:submenu>
+			            
+
+			            <p:submenu label="PLATOS" rendered="#{navegacionBean.menuPlatos}">
+			            	<p:menuitem value="Platos del dia" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoPlatosPage()}" rendered="#{navegacionBean.subMenuPlatos}"/>
+			            </p:submenu>
+			            
+			            <p:submenu label="CAJA" rendered="#{navegacionBean.menucaja}">
+							<p:menuitem value="Caja" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoCajaPage}" rendered="#{navegacionBean.subMenuCaja}"/>
+						</p:submenu>
+			            
+						
+						
+						<p:submenu label="COMPRAS" rendered="#{navegacionBean.menuCompras}">
+							<p:menuitem value="Compras" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoComprasPage()}" rendered="#{navegacionBean.subMenuCompras}"/>
+						</p:submenu>
+						
+						<p:submenu label="MANTENIMIENTOS" rendered="#{navegacionBean.menuMantenimientos}">
+							<p:menuitem value="Usuarios" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoUsuarioPage()}" rendered="#{navegacionBean.subMenuUsuarios}"/>
+			            	<p:menuitem value="Personas" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoPersonaPage()}" rendered="#{navegacionBean.subMenuPersonas}"/>
+						
+						</p:submenu>
+						
+						<p:submenu label="VENTAS" rendered="#{navegacionBean.menuVentas}">
+							<p:menuitem value="Documento de Ventas" ajax="false" icon="pi pi-file" update=":contenedor" actionListener="#{navegacionBean.getProcesosDocumentoVentasPage()}" rendered="#{navegacionBean.subMenuDocumentoVentas}"/>
+							<p:menuitem value="Crédito" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoCreditoPage()}" rendered="#{navegacionBean.subMenuCredito}"/>
+						
+						</p:submenu>
+						
+						<p:submenu label="REPORTES" rendered="#{navegacionBean.menuReportes}">
+							<p:menuitem value="Atención en mesa" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoReporteAtencionPage()}" rendered="#{navegacionBean.subMenuReporteAtencion}"/>
+							<p:menuitem value="Compras y Ventas" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getReporteComprasVentasPage()}" rendered="#{navegacionBean.subMenuComprasVentas}"/>						
+							<p:menuitem value="Reporte Documento de Venta" ajax="false" icon="pi pi-upload" update=":contenedor" actionListener="#{navegacionBean.getReportesDocumentoVentaPage()}" rendered="#{navegacionBean.subMenuReporteDocumentoVenta}"/>
+						</p:submenu>
+						
+					</p:menu>
+					</h:form>
+					
+				</pe:layoutPane>
+			</pe:layout>
+
+        </h:body>
+     
+    </f:view>
+</html>

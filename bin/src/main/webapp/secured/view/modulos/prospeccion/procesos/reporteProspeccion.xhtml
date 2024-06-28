@@ -1,0 +1,179 @@
+<ui:composition  xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}" 
+	xmlns:f="http://java.sun.com/jsf/core">
+	<!-- 				<p:growl autoUpdate="true" id="growl1" showDetail="true" sticky="true" /> -->
+	<f:metadata>
+    	<f:event type="preRenderView" listener="#{reporteProspeccionBean.onPageLoad}"/>
+    </f:metadata>
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">REPORTE DE ACCIONES</h2>
+		<h:panelGrid id="grid" columns="8" width="95%">
+			<h:outputLabel value="Fecha inicio Acción:" style="text-align:right"/>
+			<p:datePicker value="#{reporteProspeccionBean.fechaIni}" readonlyInput="true"/>
+			
+			<h:outputLabel value="Fecha fin Acción:" style="text-align:right"/>
+			<p:datePicker value="#{reporteProspeccionBean.fechaFin}" readonlyInput="true" />
+			
+			<h:outputLabel for="prospecto" value="Prospecto(Apellidos): " />
+			<p:inputText id="prospecto" value="#{reporteProspeccionBean.prospectSurnames}" />
+		
+			<h:outputLabel value="Asesor: " style="text-align:right"/>
+			<p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{reporteProspeccionBean.personAssessorSelected}" converter="#{reporteProspeccionBean.conversorPersonAssessor}" id="assessor" completeMethod="#{reporteProspeccionBean.completePersonAssesor}"  
+                          var="ase" itemLabel="#{ase.surnames.concat(' ')}#{ase.names}" itemValue="#{ase}" forceSelection="true" />
+	
+
+			<h:outputLabel value="Acción: " />
+			<p:selectOneMenu id="accion" value="#{reporteProspeccionBean.actionSelected}" converter="#{reporteProspeccionBean.conversorAction}" > 
+				<f:selectItem itemLabel="[-- TODOS --]" itemValue="#{null}" />
+				<f:selectItems value="#{reporteProspeccionBean.lstActions}" var="act" itemLabel="#{act.description}" itemValue="#{act}"/>  
+			</p:selectOneMenu>
+
+
+			<h:outputLabel for="orgCont" value="Origen de contacto: " />
+			<p:selectOneMenu id="orgCont" value="#{reporteProspeccionBean.origenContactoSelected}">
+				<f:selectItem itemLabel="[-- TODOS --]" itemValue="" />
+				<f:selectItem itemLabel="Campo" itemValue="Campo"/>
+				<f:selectItem itemLabel="Sitio web oficial" itemValue="Sitio web oficial"/>
+				<f:selectItem itemLabel="Referido" itemValue="Referido"/>
+				<f:selectItems value="#{reporteProspeccionBean.countriesGroup}"/>
+			</p:selectOneMenu>
+			
+			<h:outputLabel for="optionProject" value="Proyecto: " />
+			<p:selectOneMenu id="optionProject" value="#{reporteProspeccionBean.projectSelected}" converter="#{reporteProspeccionBean.conversorProject}"> 
+				<f:selectItem itemLabel="[-- TODOS --]" itemValue="#{null}" />
+				<f:selectItems value="#{reporteProspeccionBean.lstProject}" var="pro" itemLabel="#{pro.name}" itemValue="#{pro}"/> 
+			</p:selectOneMenu>
+			
+			<p:commandButton value="Buscar" styleClass="font-bold ui-button-outlined" actionListener="#{reporteProspeccionBean.buscarReporte}" update="form:idTableDet"/>
+			<p:commandButton value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{reporteProspeccionBean.procesarExcel}"
+                         icon="pi pi-arrow-down" styleClass="mr-2">
+            <p:fileDownload value="#{reporteProspeccionBean.fileDes}"/> 
+        </p:commandButton>
+		</h:panelGrid>
+		
+		<p:dataTable var="det" id="idTableDet" value="#{reporteProspeccionBean.lstProspectionDetailReporte}" rowIndexVar="row" paginator="true" rows="5" size="small" 
+		emptyMessage="No se encontraron registros." paginatorPosition="bottom" rowKey="#{det.id}" > 
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>Lista de Prospecciones</span>
+				</div>
+			</f:facet>
+			<p:ajax event="rowSelect" />
+
+			<p:column style="width:15px;text-align: left">
+				<f:facet name="header">
+				#
+				</f:facet>
+			</p:column>
+
+			<p:column width="25px">
+                   		#{row +1}
+     				</p:column>
+     				
+     		<p:column headerText="Prospecto / DNI" sortBy="#{det.prospection.prospect.person.surnames}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.prospect.person.surnames} #{det.prospection.prospect.person.names}#{det.prospection.prospect.person.dni eq ''?'':' / '}#{det.prospection.prospect.person.dni}" />
+			</p:column>
+			<p:column headerText="Teléfono" sortBy="#{det.prospection.prospect.person.phone}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.prospect.person.phone}" />
+			</p:column>
+			<p:column headerText="Celular" sortBy="#{det.prospection.prospect.person.cellphone}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.prospect.person.cellphone}" />
+			</p:column>
+			
+			<p:column headerText="Ocupación" sortBy="#{det.prospection.prospect.person.occupation}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.prospect.person.occupation}" />
+			</p:column>
+
+			<p:column headerText="Acción" sortBy="#{det.action.description}" filterMatchMode="contains">
+				<h:outputText value="#{det.action.description}" />
+			</p:column>
+			<p:column headerText="Fecha y Hora" sortBy="#{det.date}" filterMatchMode="contains">
+				<h:outputText value="#{det.date}" />
+			</p:column>
+			<p:column headerText="Asesor" sortBy="#{det.prospection.personAssessor.surnames}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.personAssessor.surnames} #{det.prospection.personAssessor.names}" />
+			</p:column>
+			<p:column headerText="Supervisor" sortBy="#{det.prospection.personSupervisor.surnames}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.personSupervisor.surnames} #{det.prospection.personSupervisor.names}" />
+			</p:column>
+			<p:column headerText="Origen contacto" sortBy="#{det.prospection.originContact}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.originContact}" />
+			</p:column>
+			<p:column headerText="Proyecto" sortBy="#{det.prospection.project.name}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.project.name}" />
+			</p:column>
+			<p:column headerText="Resultado" sortBy="#{det.prospection.result}" filterMatchMode="contains">
+				<h:outputText value="#{det.prospection.result}" />
+			</p:column>
+
+		</p:dataTable>
+
+	</h:form>
+	
+	<script>
+    PrimeFaces.locales['es'] = {
+        closeText: 'Cerrar',
+        prevText: 'Anterior',
+        nextText: 'Siguiente',
+        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+        dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+        weekHeader: 'Semana',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: '',
+        timeOnlyTitle: 'Sólo hora',
+        timeText: 'Tiempo',
+        hourText: 'Hora',
+        minuteText: 'Minuto',
+        secondText: 'Segundo',
+        millisecondText: 'Milisegundo',
+        currentText: 'Fecha actual',
+        ampm: false,
+        month: 'Mes',
+        week: 'Semana',
+        day: 'Día',
+        allDayText: 'Todo el día',
+        today: 'Hoy',
+        clear: 'Claro'
+    };
+    PrimeFaces.locales ['de'] = {
+        closeText: 'Schließen',
+        prevText: 'Zurück',
+        nextText: 'Weiter',
+        monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+        monthNamesShort: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+        dayNamesShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam'],
+        dayNamesMin: ['S', 'M', 'D', 'M ', 'D', 'F ', 'S'],
+        weekHeader: 'Woche',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: '',
+        timeOnlyTitle: 'Nur Zeit',
+        timeText: 'Zeit',
+        hourText: 'Stunde',
+        minuteText: 'Minute',
+        secondText: 'Sekunde',
+        millisecondText: 'Millisekunde',
+        currentText: 'Aktuelles Datum',
+        ampm: false,
+        month: 'Monat',
+        week: 'Woche',
+        day: 'Tag',
+        allDayText: 'Ganzer Tag',
+        today: 'Heute',
+        clear: 'Löschen'
+    };
+</script>
+	
+</ui:composition>

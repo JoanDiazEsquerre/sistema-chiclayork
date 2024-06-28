@@ -1,0 +1,346 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">REPORTES > DOCUMENTO DE VENTA</h2>
+		
+		<h:panelGrid columns="10"> 
+			<h:outputLabel value="Estado: " style="text-align:right"/>
+			<p:selectOneMenu value="#{reporteDocumentoVentaBean.estado}"
+				unselectable="false">
+				<f:selectItem itemLabel="TODOS" value="#{null}"/>
+				<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+				<f:selectItem itemLabel="Anulados" itemValue="#{false}" />
+				<p:ajax update="idTableListDoc" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>
+			</p:selectOneMenu>
+			
+			<h:outputLabel value="Tipo Documento:" style="text-align:right"/>
+			<p:selectOneMenu value="#{reporteDocumentoVentaBean.tipoDocumentoFilter}" converter="#{reporteDocumentoVentaBean.conversorTipoDocumentoSunat}" style="margin:5px; width:130px" >
+				<f:selectItem itemLabel="TODOS" value="#{null}"/>
+				<f:selectItems value="#{reporteDocumentoVentaBean.lstTipoDocumentoEnvioSunat}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+				<p:ajax update=":form:idTableListDoc" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+			</p:selectOneMenu>
+			
+			<h:outputLabel value="Fecha inicio:" style="text-align:right"/>
+			<p:datePicker value="#{reporteDocumentoVentaBean.fechaIni}" readonlyInput="true">
+				<p:ajax update="idTableListDoc" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+			</p:datePicker>
+			
+			<h:outputLabel value="Fecha fin:" style="text-align:right"/>
+			<p:datePicker value="#{reporteDocumentoVentaBean.fechaFin}" readonlyInput="true" >
+				<p:ajax update="idTableListDoc" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+			</p:datePicker>
+			
+			<p:commandButton value="Descargar Sunat" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{reporteDocumentoVentaBean.procesarExcelSunat}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+	           <p:fileDownload value="#{reporteDocumentoVentaBean.fileDes}"/> 
+	      	</p:commandButton>
+	      	
+	      	<p:commandButton value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{reporteDocumentoVentaBean.procesarExcel}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+	           <p:fileDownload value="#{reporteDocumentoVentaBean.fileDes}"/> 
+	      	</p:commandButton>
+	      	
+
+		</h:panelGrid>
+		
+		<p:dataTable var="documento" id="idTableListDoc" value="#{reporteDocumentoVentaBean.lstDocumentoVentaLazy}" rowIndexVar="row" paginator="true" rows="15" size="small" 
+					emptyMessage="No se encontraron documentos de venta." paginatorPosition="bottom" rowKey="#{documento.id}" selection="#{reporteDocumentoVentaBean.documentoVentaSelected}" selectionMode="single">
+
+			<p:ajax event="rowSelect" listener="#{reporteDocumentoVentaBean.listarDetalleDocumentoVenta()}" update=":formDocumentoVentaDialog :dialogDocumentoVenta" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock(); PF('docVentDialog').show();" />
+			
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>Lista de Documentos de ventas</span>
+				</div>
+			</f:facet>
+			
+			<p:column width="25px">
+	                      #{row +1}
+	        </p:column>
+	        
+	        <p:column headerText="Tipo Comprobante" filterMatchMode="contains" style="margin:5px; width:150px">
+				<f:facet name="header">
+					Tipo Documento
+		        	
+				</f:facet>
+				<h:outputText value="#{documento.tipoDocumento.descripcion}" />
+			</p:column>
+
+			<p:column headerText="Cliente(Razón social)" sortBy="#{documento.razonSocial}" filterBy="#{documento.razonSocial}" filterMatchMode="contains">
+				<h:outputText value="#{documento.razonSocial}" />
+			</p:column>
+			
+			<p:column headerText="RUC/DNI" sortBy="#{documento.ruc}" style="text-align:center;" filterBy="#{documento.ruc}" filterMatchMode="contains">
+				<h:outputText value="#{documento.ruc}" />
+			</p:column>
+
+			
+
+			<p:column headerText="Número" sortBy="#{documento.numero}" filterBy="#{documento.numero}" filterMatchMode="contains">
+				<h:outputText value="#{documento.serie}-#{documento.numero}" />
+			</p:column>
+
+			
+
+			<p:column headerText="Dirección" filterMatchMode="contains">
+				<h:outputText value="#{documento.direccion}" />
+			</p:column>
+
+			<p:column headerText="Fecha Emision" sortBy="#{documento.fechaEmision}" style="text-align:center;" filterMatchMode="contains">
+				<h:outputText value="#{documento.fechaEmision}">
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+
+			<p:column headerText="Tipo Moneda" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.tipoMoneda eq 'S'?'Soles':'Dólares'}" />
+			</p:column>
+
+			<p:column headerText="Tipo Pago" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.tipoPago}" />
+			</p:column>
+
+			<p:column headerText="SubTotal" filterMatchMode="contains" style="text-align:center;" rendered="false">
+				<h:outputText value="#{documento.subTotal}" > 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+
+			<p:column headerText="IGV" filterMatchMode="contains" style="text-align:center;" rendered="false">
+				<h:outputText value="#{documento.igv}" > 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+
+			<p:column headerText="Total" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.total}" > 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+			<p:column headerText="Enviado SUNAT" sortBy="#{documento.envioSunat}" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.envioSunat?'SI': 'NO'}" style="font-weight: bolder;color:#{documento.envioSunat?'red': 'black'}" />
+			</p:column>
+
+			<p:column headerText="Fecha Registro" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.fechaRegistro}">
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+
+			<p:column headerText="Usuario Registro"	sortBy="#{documento.usuarioRegistro.username}" filterBy="#{documento.usuarioRegistro.username}" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.usuarioRegistro.username}" />
+			</p:column>
+			
+			<p:column headerText="Estado" sortBy="#{documento.estado}" filterMatchMode="contains" style="text-align:center;">
+				<h:outputText value="#{documento.estado?'ACTIVO': 'ANULADO'}" style="font-weight: bolder;color:#{documento.estado?'green': 'red'}" />
+			</p:column>
+		
+		</p:dataTable>
+		
+		<p:dataTable var="documento" id="idTableListDoc2" rendered="false" value="#{reporteDocumentoVentaBean.lstDocumentoVentaLazy}" rowIndexVar="row" paginator="true" rows="15" size="small" style="width:120%"
+			emptyMessage="No se encontraron documentos de venta." paginatorPosition="bottom" rowKey="#{documento.id}" selectionMode="single">
+
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>FORMATO REGISTRO DE VENTAS  - GESTIÓN CONTABLE FINANCIERO PREMIUM 22.01 - NewContaSis	</span>
+				</div>
+			</f:facet>
+
+			<p:columnGroup type="header">
+                <p:row>
+                    <p:column rowspan="3" headerText="FECHA DE EMISION DEL COMPROBANTE DE PAGO O DOCUMENTO"/>
+                    <p:column rowspan="3" headerText="FECHA DE VENCIMIENTO O FECHA DE PAGO"/>
+						
+                    <p:column rowspan="2" colspan="3"  headerText="COMPROBANTE DE PAGO O DOCUMENTO" style="text-align:center"/>
+                    <p:column colspan="3" headerText="INFORMACION DEL CLIENTE" style="text-align:center"/>
+                    <p:column rowspan="3" headerText="VALOR FACTURADO DE LA EXPORTACION" style=" width:150px"/>
+                </p:row>
+                <p:row>
+                	<p:column colspan="2" headerText="DOCUMENTO IDENTIDAD"/>
+                	<p:column rowspan="2" headerText="APELLIDOS Y NOMBRES, DENOMINACION O RAZON SOCIAL" style=" width:300px"/>
+                </p:row>
+                <p:row> 
+                	<p:column headerText="TIPO"/>
+                	<p:column headerText="N° SERIE/N° SERIE MAQ REGIS"/>
+                	<p:column headerText="NUMERO"/>
+                	<p:column headerText="TIPO"/>
+                	<p:column headerText="NUMERO"/>
+                </p:row>
+            </p:columnGroup>
+ 
+            <p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.fechaEmision}">
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.fechaEmision}">
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.tipoDocumento.codigo}"/>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.serie}"/>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.numero}"/>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.tipoDocumento.abreviatura eq 'B' ? '1':'6'}"/>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.ruc}"/>
+			</p:column>
+			
+			<p:column  filterMatchMode="contains">
+				<h:outputText value="#{documento.razonSocial}"/>
+			</p:column>
+			
+			<p:column filterMatchMode="contains">
+				<h:outputText value="#{documento.total}" > 
+					<f:convertNumber type="currency" currencySymbol=""/>
+				</h:outputText>
+			</p:column>
+
+		</p:dataTable>
+		
+		
+	</h:form>
+	
+	<p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogDocumentoVenta" header="DOCUMENTO DE VENTA" widgetVar="docVentDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="background-color:green;" width="80%" >
+		<h:form id="formDocumentoVentaDialog">
+
+			<h:panelGrid width="100%" columns="2" styleClass="companyHeaderGrid"> 
+			
+				<p:graphicImage  value="#{navegacionBean.sucursalLogin.id eq 1?'/recursos/images/LOGO.png':'/recursos/images/LOGO_ABARCA.png'}"  library="demo" style="width:150px"/>	
+
+	        	<h:panelGrid columns="1" style="float:right" >	
+	        		<h:panelGrid columns="1" >	
+	        			<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'B'?'BOLETA': reporteDocumentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'F'?'FACTURA': reporteDocumentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'C'?'NOTA DE CRÉDITO': 'NOTA DE DÉBITO'} N° #{reporteDocumentoVentaBean.documentoVentaSelected.serie}-#{reporteDocumentoVentaBean.documentoVentaSelected.numero}" style="width : 100px;color:#337CFF;font-size: 20px;"/>				
+					</h:panelGrid>
+					<h:panelGrid columns="2" >	
+						<h:outputText value="Fecha Emisión:" style="float:right"/>
+		        		<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.fechaEmision}" style="float:right" > 
+		        			<f:convertDateTime pattern="dd/MM/yyyy" />
+		        		</h:outputText>
+					</h:panelGrid>
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" styleClass="companyHeaderGrid">
+	
+				<h:outputText value="Ruc:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.ruc}" />
+				
+				<h:outputText value="Cliente:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.razonSocial}" />
+	
+				<h:outputText value="Dirección:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.direccion}" />
+	
+				<h:outputText value="Tipo Pago:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.tipoPago}"  />
+	        	
+	        	<h:outputText value="Moneda:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.tipoMoneda eq 'S'?'Soles':'Dólares'}"  />
+	        	
+	        	<h:outputText value="Observación:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.observacion}"  />
+	        	
+	        	<h:outputText value="Correo 1:" />
+	        	<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.cliente.email1Fe}" />
+		        
+		        <h:outputText value="Correo 2:" />
+		        <h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.cliente.email2Fe}" />
+
+		        <h:outputText value="Correo 3:" />
+		        <h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.cliente.email3Fe}" />
+
+			</h:panelGrid>   
+				
+			<h:panelGrid>
+		
+				<p:dataTable var="det" id="idTableDetalleDocumento" value="#{reporteDocumentoVentaBean.lstDetalleDocumentoVentaSelected}"  rowIndexVar="row" paginator="true" rows="15" size="small"
+				emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}" >
+	
+					<p:column headerText="Cantidad" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="1"/>
+					</p:column>
+					
+					<p:column headerText="Descripción" filterMatchMode="contains" style="text-align:center;width:400px" >
+						<h:outputText value="#{det.descripcion}"  style="width:400px"/>
+					</p:column>
+					
+					<p:column headerText="Precio Unitario" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.precioUnitario}"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.total}"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+			
+				</p:dataTable>
+	
+			</h:panelGrid>
+			
+			<h:panelGrid style="width:50%;float:left;" columns="1" >	
+				<h:panelGrid  columns="2" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Son:" />
+	         		<h:outputText value="#{reporteDocumentoVentaBean.montoLetra}" />
+	
+				</h:panelGrid>
+	
+			</h:panelGrid>
+				
+			<h:panelGrid style="width:50%;float:right;" columns="1" >	
+				<h:panelGrid style="float:right"  columns="3" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Sub-Total:" />
+					<h:outputText value="S/" />	         		
+	         		<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.subTotal}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+				
+					<h:outputText value="Igv:" />
+					<h:outputText value="S/" />		
+	         		<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.igv}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+					<h:outputText value="Total:" style="color:blue"/>
+					<h:outputText value="S/" style="color:blue"/>	         		
+	         		<h:outputText value="#{reporteDocumentoVentaBean.documentoVentaSelected.total}" style="color:blue"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+				</h:panelGrid>
+			</h:panelGrid>
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	
+	
+</ui:composition>

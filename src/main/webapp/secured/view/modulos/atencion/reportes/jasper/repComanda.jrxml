@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="repComanda" language="groovy" pageWidth="220" pageHeight="320" columnWidth="220" leftMargin="0" rightMargin="0" topMargin="10" bottomMargin="10" uuid="f7cc8725-31db-46d6-9e69-d3629a2409fe">
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="MESA" class="java.lang.String"/>
+	<parameter name="MESERO" class="java.lang.String"/>
+	<parameter name="FECHA" class="java.lang.String"/>
+	<parameter name="PATTERN" class="java.lang.Object"/>
+	<field name="Plato" class="java.lang.String"/>
+	<field name="Entrada" class="java.lang.String"/>
+	<field name="Observacion" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="bb4cd30f-109a-460c-8389-127a102636ab" x="2" y="26" width="218" height="8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="c961cb00-edae-45d9-9fcd-66f30bc472f3" x="53" y="-2" width="95" height="15"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$P{MESA}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="df293405-cba2-4c94-8ba8-69df42a56189" x="2" y="12" width="218" height="14"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["MESERO: " + $P{MESERO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bba5a5d4-c7ca-4dfd-89f6-9835f65d7e6a" x="2" y="21" width="218" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["FECHA: " + $P{FECHA}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="33" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="da091bad-bb9d-4d13-ab75-9a2e1dcb73be" positionType="Float" x="2" y="23" width="218" height="8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="b864e5fa-69f2-44eb-8cb8-478ab5c2133c" x="2" y="1" width="136" height="11"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Plato}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fb4b7321-72b4-4f91-bc6f-4aff13cbf5fb" x="138" y="1" width="82" height="11"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Entrada}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="45dde320-ef68-4a81-a741-e0d3ff2591bf" positionType="Float" stretchType="RelativeToBandHeight" x="2" y="11" width="218" height="11"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Observacion}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

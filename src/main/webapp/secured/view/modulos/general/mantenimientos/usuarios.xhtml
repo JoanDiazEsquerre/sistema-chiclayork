@@ -1,0 +1,141 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > USUARIOS</h2>
+        <p:selectOneButton value="#{usuarioBean.estado}" unselectable="false">
+            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+            <p:ajax update=":form:idTableUser" />
+        </p:selectOneButton>
+
+       <p:dataTable reflow="true" var="user" id="idTableUser" value="#{usuarioBean.lstUsuarioLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+            emptyMessage="No se encontraron usuarios." paginatorPosition="bottom" rowKey="#{user.id}" selection="#{usuarioBean.userSelected}" selectionMode="single">
+            <f:facet name="header">
+                <div class="p-d-flex p-ai-center p-jc-between">
+                    <span>Lista de Usuarios</span>
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{usuarioBean.updateUser()}" oncomplete="PF('proyectoNewDialog').show();" />
+
+           <p:column style="width:42px;text-align: left">
+                <f:facet name="header">
+                    <p:commandLink actionListener="#{usuarioBean.newUser()}" update="dialogProyecto" oncomplete="PF('proyectoNewDialog').show();" title="NUEVO USUARIO">
+                        <p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+                   </p:commandLink>
+                </f:facet>
+            </p:column>
+
+           <p:column width="25px">
+                      #{row +1}
+        </p:column>
+
+           <p:column headerText="Nombre de Usuario" sortBy="#{user.username}" filterBy="#{user.username}" filterMatchMode="contains">
+                <h:outputText value="#{user.username}" />
+            </p:column>
+            <p:column headerText="Contraseña" sortBy="#{user.password}" filterBy="#{user.password}" filterMatchMode="contains">
+                <h:outputText value="#{user.password}" />
+            </p:column>
+    	    <p:column headerText="Persona" sortBy="#{user.person.surnames}" filterBy="#{user.person.surnames},#{user.person.names}" filterMatchMode="contains">
+                <h:outputText value="#{user.persona.apellidos}#{user.persona.nombres ne null?' ':'' }#{user.persona.nombres}" />
+            </p:column>
+        
+            <p:column headerText="Perfil" sortBy="#{user.perfil.nombre}" filterBy="#{user.perfil.nombre}" filterMatchMode="contains">
+                <h:outputText value="#{user.perfil.nombre}" />
+            </p:column>      
+        </p:dataTable>
+        
+        <p:contextMenu for="idTableUser">
+            <p:menuitem value="Asignar Sucursal" update="dialogSucursal" icon="pi pi-search" oncomplete="PF('sucursalDialog').show()" actionListener="#{usuarioBean.restablecerValores}"/>
+        </p:contextMenu>
+        
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogSucursal" header="Asignar sucursal a : #{usuarioBean.userSelected.persona.nombres} #{usuarioBean.userSelected.persona.apellidos}"  
+    	widgetVar="sucursalDialog" resizable="false" closable="true" appendTo="@(body)" width="55%">
+		<h:form id="formsucursalDialog">
+	       
+	        
+	        <h:panelGrid id="grid" columns="5" width="50%">
+				
+				<h:outputLabel for="empresa" value="Empresa:" /> 
+               	<p:selectOneMenu id="empresa" value="#{usuarioBean.empresa}" style="margin:5px;width:250px" converter="#{usuarioBean.conversorEmpresa}">
+					<f:selectItems value="#{usuarioBean.lstEmpresa}" var="empre" itemLabel="#{empre.nombre}" itemValue="#{empre}"/>
+					<p:ajax update="sucursal" listener="#{usuarioBean.listarSucursalPorEmpresa}"  />		
+				</p:selectOneMenu>
+			
+				<h:outputLabel for="sucursal" value="Sucursal:" /> 
+               	<p:selectOneMenu id="sucursal" value="#{usuarioBean.sucursal}" style="margin:5px;width:250px" converter="#{usuarioBean.conversorSucursal}">
+					<f:selectItems value="#{usuarioBean.lstSucursal}" var="sucur" itemLabel="#{sucur.nombre}" itemValue="#{sucur}"/>
+				</p:selectOneMenu>
+                
+                <p:commandButton value="Asignar" action="#{usuarioBean.asignarSucursal()}" update="idSucurTable" />
+						   	
+			</h:panelGrid>
+			
+			<p:dataTable var="sucurs" id="idSucurTable" value="#{usuarioBean.lstUsuarioSucursal}" widgetVar="idTeamTable" rowIndexVar="row" paginator="true" rows="4" 
+				size="small" emptyMessage="No se encontratos resultados." paginatorPosition="bottom" rowKey="#{sucurs.id}" selection="#{usuarioBean.usuarioSucursalSelected}" selectionMode="single">
+				
+				<p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	        	
+				<p:column headerText="Sucursal"  filterMatchMode="contains" style="text-align: center">
+					<h:outputText value="#{sucurs.sucursal.nombre}"  />
+				</p:column>
+				
+				<p:column headerText="Empresa" filterMatchMode="contains" style="text-align: center">
+					<h:outputText value="#{sucurs.sucursal.empresa.nombre}" />
+				</p:column>
+				
+				<p:column width="10%" filterMatchMode="contains">
+					<p:commandButton action="#{usuarioBean.desasignarSucursal}"  icon="pi pi-trash" styleClass="rounded-button ui-button-danger" process="@this" update="idSucurTable" >
+						<f:setPropertyActionListener value="#{sucurs}" target="#{usuarioBean.suc}" />
+					</p:commandButton>
+				</p:column>
+				
+			</p:dataTable>
+			
+	    </h:form>
+	</p:dialog>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{usuarioBean.tituloDialog}" widgetVar="proyectoNewDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProyecto">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel for="option" value="Persona:" />
+                <p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{usuarioBean.userSelected.persona}" converter="#{usuarioBean.conversorPerson}" id="option" completeMethod="#{usuarioBean.completePerson}"  
+                          var="per" itemLabel="#{per.apellidos.concat(' ')}#{per.nombres}" itemValue="#{per}" forceSelection="true" style="margin:10px" />
+                
+                <h:outputLabel for="username" value="Nombre de Usuario: " />
+                <p:inputText id="username" value="#{usuarioBean.userSelected.username}" style="margin:10px" maxlength="30" />
+
+              	<h:outputLabel for="pass" value="Contraseña:" />
+                <p:inputText id="pass" value="#{usuarioBean.userSelected.password}" style="margin:10px" maxlength="50" />
+                        
+                <h:outputLabel for="optionPerfil" value="Perfil:" />
+                <p:selectOneMenu id="optionPerfil" value="#{usuarioBean.userSelected.perfil}" converter="#{usuarioBean.conversorProfile}" style="margin:10px" >
+                    <f:selectItem itemLabel="[-- Ninguno --]" itemValue="#{null}"/>
+                    <f:selectItems value="#{usuarioBean.lstPerfil}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
+                </p:selectOneMenu>
+                
+             
+                
+                <h:outputLabel for="estado" value="Estado:" />
+                <p:selectOneMenu id="estado" value="#{usuarioBean.userSelected.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
+                </p:selectOneMenu>
+                    <p:commandButton value="Guardar" actionListener="#{usuarioBean.saveUpdateUser()}" update=":form:idTableUser :formProyecto"/>
+                    
+            </h:panelGrid>
+            
+        </h:form>
+    </p:dialog>
+</ui:composition>

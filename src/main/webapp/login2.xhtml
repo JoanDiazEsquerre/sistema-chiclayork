@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>Inicio de Sesión</title>
+</h:head>
+<h:body>
+    <h:form id="loginForm">
+        <p:messages autoUpdate="true" closable="true"/>
+        <p:panel header="Inicio de Sesión">
+            <h:panelGrid columns="2" style="text-align:center;">
+            	<h:column>
+            		<h:panelGrid columns="2"> 
+	            		<h:outputLabel value="Usuario:" for="username"/>
+	                	<p:inputText id="username" name="username" value="#{loginBean.username}" style="margin:5px;width:250px" />
+	                	
+	                	<h:outputLabel value="Contraseña:" for="password"/>
+	                	<p:password id="password" name="password" value="#{loginBean.password}" style="margin:5px;width:250px" />
+	                	
+	                	<h:outputLabel value="Sucursal:" for="sucursal"/>  
+	                	<p:selectOneMenu id="sucursal" value="#{loginBean.sucursal}" style="margin:5px;width:250px" converter="#{loginBean.conversorSucursal}">
+							<f:selectItems value="#{loginBean.lstSucursal}" var="suc" itemLabel="#{suc.nombre}" itemValue="#{suc}"/> 
+						</p:selectOneMenu>
+	                	
+	                	<p:commandButton value="Ingresar" action="#{loginBean.doLogin}" ajax="false" />
+            		</h:panelGrid>
+            	</h:column>
+            	
+            	<h:column>
+            		 <p:graphicImage value="/recursos/images/LOGO.png" width="50%"  library="demo"/>
+            	</h:column>
+               
+            </h:panelGrid>
+
+           
+
+        </p:panel>
+    </h:form>
+</h:body>
+</html>

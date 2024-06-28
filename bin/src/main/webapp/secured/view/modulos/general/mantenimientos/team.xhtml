@@ -1,0 +1,79 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">EQUIPOS</h2>
+		<p:selectOneButton value="#{teamBean.estado}">
+			<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+			<f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+			<p:ajax update=":form:idTableTeam"
+				listener="#{teamBean.listarTeam()}" />
+		</p:selectOneButton>      
+		<p:dataTable var="team" id="idTableTeam" value="#{teamBean.listTeam}" widgetVar="teamTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+		emptyMessage="No se encontraron equipos."	paginatorPosition="bottom" rowKey="#{team.id}" selection="#{teamBean.teamSelected}" selectionMode="single">
+		<f:facet name="header">
+			<div class="p-d-flex p-ai-center p-jc-between">
+				<span>Lista de Equipos</span>
+			</div>
+		</f:facet>
+		<p:ajax event="rowSelect" listener="#{teamBean.modifyTeam()}" update=":formTeamDialog :dialogTeam" oncomplete="PF('teamDialog').show();" />
+
+		<p:column style="width:42px;text-align: left">
+			<f:facet name="header">
+				<p:commandLink action="#{teamBean.newTeam()}"
+					update=":formTeamDialog :dialogTeam"
+					oncomplete="PF('teamDialog').show();"
+					title="NUEVO EQUIPO">
+					<p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+				</p:commandLink>
+			</f:facet>
+		</p:column>
+
+		<p:column width="25px">
+                      #{row +1}
+        </p:column>
+        
+		<p:column headerText="Nombre de Equipo" sortBy="#{team.name}"
+			filterBy="#{team.name}" filterMatchMode="contains">
+			<h:outputText value="#{team.name}" />
+		</p:column>
+		<p:column headerText="Supervisor" sortBy="#{team.personSupervisor.surnames} #{team.personSupervisor.names}"
+			filterBy="#{team.personSupervisor.surnames} #{team.personSupervisor.names}" filterMatchMode="contains">
+			<h:outputText value="#{team.personSupervisor.surnames} #{team.personSupervisor.names}" />
+		</p:column>
+	</p:dataTable>
+
+	</h:form>
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogTeam" header="#{teamBean.tituloDialog}" widgetVar="teamDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formTeamDialog">
+		    <p:messages id="messages" showDetail="true" closable="true">
+	            <p:autoUpdate/>
+	        </p:messages>
+			<h:panelGrid id="grid" columns="2">
+				<h:outputLabel for="optionPerson" value="Persona:" />
+				<p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{teamBean.teamSelected.personSupervisor}" converter="#{teamBean.conversorPersonSupervisor}" id="optionPerson" completeMethod="#{teamBean.completePersonSupervisor}"  
+                          var="per" itemLabel="#{per.surnames.concat(' ')}#{per.names}" itemValue="#{per}" forceSelection="true" style="margin:10px" />
+				<h:outputLabel value="Nombre de Equipo: " for="nombreEquipo" />
+				<p:inputText value="#{teamBean.teamSelected.name}" style="margin:10px"
+					id="nombreEquipo" />
+				<h:outputLabel for="option" value="Estado:" />
+				<p:selectOneMenu id="option" value="#{teamBean.teamSelected.status}" style="margin:10px">
+					<f:selectItem itemLabel="ACTIVO" itemValue="#{true}" />
+					<f:selectItem itemLabel="INACTIVO" itemValue="#{false}" />
+				</p:selectOneMenu>	
+				<p:commandButton value="Guardar" action="#{teamBean.saveTeam()}" 
+					update=":form:idTableTeam :formTeamDialog"/>
+			</h:panelGrid>
+		</h:form>
+	</p:dialog>
+		
+	
+</ui:composition>

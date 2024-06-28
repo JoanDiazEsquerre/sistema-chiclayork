@@ -1,0 +1,72 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">PROYECTOS</h2>
+		<p:selectOneButton value="#{projectBean.estado}">
+			<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+			<f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+			<p:ajax update=":form:idTableProject"
+				listener="#{projectBean.listarProject()}" />
+		</p:selectOneButton>      
+		<p:dataTable var="project" id="idTableProject" value="#{projectBean.listProject}" widgetVar="projectTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+		emptyMessage="No se encontraron proyectos."	paginatorPosition="bottom" rowKey="#{project.id}" selection="#{projectBean.projectSelected}" selectionMode="single">
+		<f:facet name="header">
+			<div class="p-d-flex p-ai-center p-jc-between">
+				<span>Lista de Proyectos</span>
+			</div>
+		</f:facet>
+		<p:ajax event="rowSelect" listener="#{projectBean.modifyProject()}" update=":formProjectDialog :dialogProject" oncomplete="PF('projectDialog').show();" />
+
+		<p:column style="width:42px;text-align: left">
+			<f:facet name="header">
+				<p:commandLink action="#{projectBean.newProject()}"
+					update=":formProjectDialog :dialogProject"
+					oncomplete="PF('projectDialog').show();"
+					title="NUEVO PROYECTO">
+					<p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+				</p:commandLink>
+			</f:facet>
+		</p:column>
+
+		<p:column width="25px">
+                      #{row +1}
+        </p:column>
+        
+		<p:column headerText="Nombre de Proyecto" sortBy="#{project.name}"
+			filterBy="#{project.name}" filterMatchMode="contains">
+			<h:outputText value="#{project.name}" />
+		</p:column>
+	</p:dataTable>
+
+	</h:form>
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProject" header="#{projectBean.tituloDialog}" widgetVar="projectDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="width:auto">
+		<h:form id="formProjectDialog">
+		    <p:messages id="messages" showDetail="true" closable="true">
+	            <p:autoUpdate/>
+	        </p:messages>
+			<h:panelGrid id="grid" columns="2">
+				<h:outputLabel value="Nombre de Proyecto: " for="nombreProyecto" />
+				<p:inputText value="#{projectBean.projectSelected.name}"
+					id="nombreProyecto" />
+				<h:outputLabel for="option" value="Estado:" />
+				<p:selectOneMenu id="option" value="#{projectBean.projectSelected.status}" style="margin:5px">
+					<f:selectItem itemLabel="ACTIVO" itemValue="#{true}" />
+					<f:selectItem itemLabel="INACTIVO" itemValue="#{false}" />
+				</p:selectOneMenu>	
+				<p:commandButton value="Guardar" action="#{projectBean.saveProject()}" 
+					update=":form:idTableProject :formProjectDialog"/>
+			</h:panelGrid>
+		</h:form>
+	</p:dialog>
+		
+	
+</ui:composition>

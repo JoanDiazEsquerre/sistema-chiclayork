@@ -1,0 +1,13 @@
+<ui:composition template="plantilla/template.xhtml"	
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions">   
+    
+    <ui:define name="contenido"> 
+     <ui:include src="#{navegacionBean.ruta}"/>
+											
+	</ui:define>			
+</ui:composition> 

@@ -1,0 +1,239 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">CAJA > CAJA</h2>
+		
+		<p:dataTable var="caja" id="idTableCabecera" value="#{cajaBean.lstCajaLazy}" widgetVar="atencionTable" rowIndexVar="row" paginator="true" rows="20" size="small"
+			emptyMessage="No se encontraron resultados." paginatorPosition="bottom" rowKey="#{caja.id}" selection="#{cajaBean.cajaSelected}" selectionMode="single">
+			
+			<p:ajax event="rowSelect" listener="#{cajaBean.listarDetallesCajaSelected()}" update="dialogCajaDetalle" oncomplete="PF('cajaDetalleDialog').show();" />
+			
+		
+			<f:facet name="header">
+				<div class="p-d-flex p-ai-center p-jc-between">
+					<span>Lista de Caja</span>
+				</div>
+			</f:facet>
+			
+			<p:column style="width:42px;text-align: left">
+				<f:facet name="header"> 
+					
+					<p:commandButton icon="pi pi-plus" actionListener="#{cajaBean.aperturarCaja}" update="dialogCaja" styleClass="rounded-button ui-button-success" />
+					
+				</f:facet>
+			</p:column>
+			
+			<p:column width="25px">
+	            #{caja.id}
+	        </p:column>
+	        <p:column headerText="Estado" filterMatchMode="contains">
+				<h:outputText value="#{caja.estado}" style="font-weight: bolder;color:#{caja.estado eq 'Abierta'?'green': 'red'}"/>
+			</p:column>
+			<p:column headerText="Fecha Inicio" filterMatchMode="contains">
+				<h:outputText value="#{cajaBean.convertirHora(caja.fecha)}" />
+			</p:column>			
+			<p:column headerText="Monto Inicio Efectivo" filterMatchMode="contains">
+				<h:outputText value="#{caja.montoInicioEfectivo}" >   
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</p:column>
+			<p:column headerText="Monto Final Efectivo" filterMatchMode="contains">
+				<h:outputText value="#{cajaBean.calcularFinalEfectivo(caja)}" >   
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</p:column>
+			<p:column headerText="Monto Inicio POS" filterMatchMode="contains">
+				<h:outputText value="#{caja.montoInicioPos}" >   
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</p:column>
+			<p:column headerText="Monto Final POS" filterMatchMode="contains">
+				<h:outputText value="#{cajaBean.calcularFinalPos(caja)}" >   
+	                <f:convertNumber type="currency" currencySymbol=""/>
+	            </h:outputText>
+			</p:column>
+			
+			<p:column headerText="Usuario" filterMatchMode="contains">
+				<h:outputText value="#{caja.usuario.username}" />
+			</p:column>
+		</p:dataTable>
+				
+	</h:form>
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogCajaDetalle" height="80%" header="CAJA" widgetVar="cajaDetalleDialog" 
+		resizable="false" closable="true" appendTo="@(body)" width="70%">
+		<h:form id="formDialogDetalle">
+			<h:panelGrid columns="2">
+				<p:outputLabel value="Tipo Movimiento: " />
+				<p:selectOneMenu value="#{cajaBean.detalleCajaSelected.tipoMovimiento}">
+					<f:selectItem itemLabel="Ingreso" itemValue="Ingreso" />
+					<f:selectItem itemLabel="Egreso" itemValue="Egreso" />
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Origen: " />
+				<p:selectOneMenu value="#{cajaBean.detalleCajaSelected.origen}">
+					<f:selectItem itemLabel="Efectivo" itemValue="Efectivo" />
+					<f:selectItem itemLabel="POS" itemValue="POS" />
+				</p:selectOneMenu>
+				
+				<p:outputLabel value="Descripcion: " />
+				<p:inputTextarea rows="3" cols="50" value="#{cajaBean.detalleCajaSelected.descripcion}" maxlength="200"/>
+				
+				<p:outputLabel value="Monto: " />
+				<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{cajaBean.detalleCajaSelected.monto}"/>
+				
+			</h:panelGrid>
+			
+			<h:panelGrid columns="3">
+				
+				<p:commandButton actionListener="#{cajaBean.saveDetalleCaja}" value="Agregar" update=":formDialogDetalle :form:idTableCabecera"/>
+				<p:commandButton value="Cerrar Caja" action="#{cajaBean.validaCerrarCaja()}"/>
+				<p:commandButton value="Descargar Excel" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{cajaBean.descargarExcelDetalleCaja}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+		           <p:fileDownload value="#{cajaBean.fileDes}"/> 
+		      	</p:commandButton>
+		      	
+			</h:panelGrid>
+			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{cajaBean.lstDetalleCajaSelected}" rowIndexVar="row" rows="10" paginator="true" size="small"
+	    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE MOVIMIENTOS</span>
+	                </div>
+	            </f:facet>
+	            
+	            <p:column width="25px">
+	                      #{row +1}
+	       		</p:column>
+	
+	            <p:column headerText="Tipo" sortBy="#{detalle.tipoMovimiento}" width="20px" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.tipoMovimiento}" style="color:#{detalle.tipoMovimiento eq 'Egreso'?'red':'green'}" />
+	            </p:column>
+	            <p:column headerText="Origen" sortBy="#{detalle.origen}" width="20px" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.origen}" />
+	            </p:column>
+	            <p:column headerText="Descripcion" sortBy="#{detalle.descripcion}" width="100px" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.descripcion}" />
+	            </p:column>
+	            <p:column headerText="Monto" sortBy="#{detalle.monto}" width="20px" filterMatchMode="contains">
+	            	<h:outputText value="#{detalle.tipoMovimiento eq 'Egreso'?'-':''}" />
+	                <h:outputText value="#{detalle.monto}" >
+		                <f:convertNumber type="currency" currencySymbol=""/>
+		            </h:outputText>
+	            </p:column>
+	            <p:column headerText="Fecha y Hora" sortBy="#{detalle.fecha}" width="40px" filterMatchMode="contains">
+            		<h:outputText value="#{cajaBean.convertirHoraFull(detalle.fecha)}" />
+	            </p:column>
+	        </p:dataTable>
+			
+		</h:form>
+	</p:dialog>
+	
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogCaja" height="90%" header="CAJA" widgetVar="cajaDialog" 
+		resizable="false" closable="true" appendTo="@(body)" style="width:auto">
+		<h:form id="formDialog">
+			<h:panelGrid columns="2">
+				<p:outputLabel value="Fecha: " />
+				<p:datePicker id="basic" value="#{cajaBean.cajaSelected.fecha}" />
+				
+				<p:outputLabel value="Monto Inicio Efectivo: " />
+				<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{cajaBean.cajaSelected.montoInicioEfectivo}"/>
+				
+				<p:outputLabel value="Monto Inicio POS: " />
+				<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{cajaBean.cajaSelected.montoInicioPos}"/>
+				
+				<p:commandButton actionListener="#{cajaBean.saveCaja}" value="GUARDAR" update=":form:idTableCabecera"/>
+			
+			</h:panelGrid>
+			
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI target="cerrarCaja" widgetVar="blockUIWidgetAnularDoc">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="cerrarCaja" message="¿Está seguro de cerrar la caja?" header="Confirmación" severity="alert" widgetVar="cerrarCaja" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('cerrarCaja').hide()"  action="#{cajaBean.cerrarCaja}" update="dialogCajaDetalle :form:idTableCabecera"/>
+            <p:commandButton value="NO" oncomplete="PF('cerrarCaja').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	
+	<script>
+	    PrimeFaces.locales['es'] = {
+	        closeText: 'Cerrar',
+	        prevText: 'Anterior',
+	        nextText: 'Siguiente',
+	        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+	        monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+	        dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+	        dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+	        dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+	        weekHeader: 'Semana',
+	        firstDay: 1,
+	        isRTL: false,
+	        showMonthAfterYear: false,
+	        yearSuffix: '',
+	        timeOnlyTitle: 'Sólo hora',
+	        timeText: 'Tiempo',
+	        hourText: 'Hora',
+	        minuteText: 'Minuto',
+	        secondText: 'Segundo',
+	        millisecondText: 'Milisegundo',
+	        currentText: 'Fecha actual',
+	        ampm: false,
+	        month: 'Mes',
+	        week: 'Semana',
+	        day: 'Día',
+	        allDayText: 'Todo el día',
+	        today: 'Hoy',
+	        clear: 'Claro'
+	    };
+	    PrimeFaces.locales ['de'] = {
+	        closeText: 'Schließen',
+	        prevText: 'Zurück',
+	        nextText: 'Weiter',
+	        monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+	        monthNamesShort: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+	        dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+	        dayNamesShort: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam'],
+	        dayNamesMin: ['S', 'M', 'D', 'M ', 'D', 'F ', 'S'],
+	        weekHeader: 'Woche',
+	        firstDay: 1,
+	        isRTL: false,
+	        showMonthAfterYear: false,
+	        yearSuffix: '',
+	        timeOnlyTitle: 'Nur Zeit',
+	        timeText: 'Zeit',
+	        hourText: 'Stunde',
+	        minuteText: 'Minute',
+	        secondText: 'Sekunde',
+	        millisecondText: 'Millisekunde',
+	        currentText: 'Aktuelles Datum',
+	        ampm: false,
+	        month: 'Monat',
+	        week: 'Woche',
+	        day: 'Tag',
+	        allDayText: 'Ganzer Tag',
+	        today: 'Heute',
+	        clear: 'Löschen'
+	    };
+	</script>
+
+</ui:composition>
