@@ -1,0 +1,38 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form" >
+		<h2 style="color: #007d4c;">ASISTENCIA > ASISTENCIA</h2>
+		<h:outputLabel value="DNI:" style="font-size: 50px; margin-right: 40px"/>
+		<h:outputLabel id="texto" style="font-size: 50px" value="#{asistenciaBean.textoIngresado}"/>
+		<p:panelGrid  columns="4" id="panelFilter" layout="grid" styleClass="ui-panelgrid-blank ui-fluid" style="width:100%;text-align:center">
+			
+			<p:commandButton actionListener="#{asistenciaBean.boton1()}" update=":form:texto" value="1" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton2()}" update=":form:texto" value="2" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton3()}" update=":form:texto" value="3" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.borrar()}" update=":form:texto" value="BORRAR" styleClass="ui-button-danger" style="height:80px;font-size:30px" />
+			
+			<p:commandButton actionListener="#{asistenciaBean.boton4()}" update=":form:texto" value="4" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton5()}" update=":form:texto" value="5" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton6()}" update=":form:texto" value="6" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.limpiar()}" update=":form:texto" value="LIMPIAR" styleClass="ui-button-warning" style="height:80px;font-size:30px" />
+			
+			<p:commandButton actionListener="#{asistenciaBean.boton7()}" update=":form:texto"  value="7" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton8()}" update=":form:texto" value="8" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.boton9()}" update=":form:texto" value="9" style="height:80px;font-size:50px"/>
+			<p:commandButton actionListener="#{asistenciaBean.aceptar()}" update=":form:texto" value="ACEPTAR" styleClass="ui-button-success"  style="height:80px;font-size:30px"/>
+			    
+			<h:outputLabel value=""/>
+			<p:commandButton actionListener="#{asistenciaBean.boton0()}" update=":form:texto" value="0" style="height:80px;font-size:50px"/>
+			
+		</p:panelGrid>	
+
+	</h:form>
+
+</ui:composition>

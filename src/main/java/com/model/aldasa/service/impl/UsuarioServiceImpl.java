@@ -83,6 +83,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 		// TODO Auto-generated method stub
 		return usuarioRepository.findByUsernameException(username, idUser); 
 	}
-	
+
+	@Override
+	public Usuario findByPersonaDniAndEstadoAndControlarAsistencia(String dni, boolean estado,
+			boolean controlarAsistencia) {
+		// TODO Auto-generated method stub
+		return usuarioRepository.findByPersonaDniAndEstadoAndControlarAsistencia(dni, estado, controlarAsistencia);
+	}
+
+
 
 }

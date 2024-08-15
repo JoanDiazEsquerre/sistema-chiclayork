@@ -357,5 +357,19 @@
 			<value>#{navegacionBean}</value>
 		</managed-property>
 	</managed-bean>
+	
+	<managed-bean>
+		<managed-bean-name>asistenciaBean</managed-bean-name>
+		<managed-bean-class>com.model.aldasa.general.bean.AsistenciaBean</managed-bean-class>
+		<managed-bean-scope>session</managed-bean-scope>
+		<managed-property>
+			<property-name>asistenciaService</property-name>
+			<value>#{asistenciaService}</value>
+		</managed-property>
+		<managed-property>
+			<property-name>usuarioService</property-name> 
+			<value>#{usuarioService}</value>
+		</managed-property>
+	</managed-bean>
 		
 </faces-config>

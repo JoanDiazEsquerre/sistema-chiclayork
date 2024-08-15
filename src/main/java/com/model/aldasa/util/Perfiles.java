@@ -5,7 +5,8 @@ public enum Perfiles {
 	ADMINISTRADOR("ADMINISTRADOR",1),
 	MESERO("MESERO",2),
 	CHEF("CHEF",3),
-	CAJERO("CAJERO", 4);
+	CAJERO("CAJERO", 4),
+	ASISTENCIA("ASISTENCIA", 5);
 	
 	private String name;
 	private int id;

@@ -1,5 +1,8 @@
 package com.model.aldasa.entity;
 
+import java.util.Date;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -28,6 +31,9 @@ public class Usuario {
 	@JoinColumn(name="idperfil")
 	private Perfil perfil;
 	
+	
+	@Column(name="controlarasistencia")
+	private boolean controlarAsistencia;
 	
 	public Integer getId() {
 		return id;
@@ -64,6 +70,12 @@ public class Usuario {
 	}
 	public void setPerfil(Perfil perfil) {
 		this.perfil = perfil;
+	}
+	public boolean isControlarAsistencia() {
+		return controlarAsistencia;
+	}
+	public void setControlarAsistencia(boolean controlarAsistencia) {
+		this.controlarAsistencia = controlarAsistencia;
 	}
 	
 	

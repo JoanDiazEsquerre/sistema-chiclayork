@@ -944,6 +944,13 @@ public class DocumentoVentaBean extends BaseBean {
 			return;
 		}
 		
+		if(importeTotal.compareTo(new BigDecimal(700))>0) {
+			if(numeroDocumentoText.equals("99999999")) { 
+				addErrorMessage("Los importes mayores a 700 soles, deben tener asigado a una persona o empresa."); 
+				return;
+			}
+		}
+		
 		
 		for(DetalleDocumentoVenta d : lstDetalleDocumentoVenta) {
 			if(d.getPrecioUnitario()==null) {

@@ -196,6 +196,7 @@ public class UsuarioBean extends BaseBean implements Serializable {
 		
 		userSelected = new Usuario();
 		userSelected.setEstado(true); 
+		userSelected.setControlarAsistencia(false); 
 	}
 	
 	public void updateUser() {

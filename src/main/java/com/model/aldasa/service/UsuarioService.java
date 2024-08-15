@@ -17,6 +17,7 @@ public interface UsuarioService {
 	Usuario findByUsernameAndEstado(String username, boolean status);
 	Usuario findByUsername(String username);
 	Usuario findByUsernameAndPassword(String username, String pass);
+	Usuario findByPersonaDniAndEstadoAndControlarAsistencia(String dni, boolean estado, boolean controlarAsistencia);
 	List<Usuario> findAll();
 	
 	Usuario findByPersona(Persona person);

@@ -33,9 +33,9 @@ public class NavegacionBean implements Serializable  {
 	private Sucursal sucursalLogin;
 	
 	
-	private boolean menuPlatos, menuMantenimientos, menuMesas, menuReportes, menuCompras, menucaja, menuVentas;
+	private boolean menuPlatos, menuMantenimientos, menuMesas, menuReportes, menuCompras, menucaja, menuVentas, menuAsistencia;
 	private boolean subMenuPlatos, subMenuPersonas, subMenuUsuarios, subMenuMesas, subMenuReporteAtencion, subMenuCompras, subMenuComprasVentas, subMenuCaja,
-	subMenuDocumentoVentas, subMenuReporteDocumentoVenta, subMenuCredito;
+	subMenuDocumentoVentas, subMenuReporteDocumentoVenta, subMenuCredito, subMenuAsistencia, subMenuReporteAsistencia;
 	
 	private int[] permisoPlatos= {Perfiles.ADMINISTRADOR.getId(),Perfiles.MESERO.getId(), Perfiles.CHEF.getId(), Perfiles.CAJERO.getId() };
 	private int[] permisoPersonas= {Perfiles.ADMINISTRADOR.getId()};
@@ -48,6 +48,8 @@ public class NavegacionBean implements Serializable  {
 	private int[] permisoDocumentoVentas= {Perfiles.ADMINISTRADOR.getId(), Perfiles.CAJERO.getId()};
 	private int[] permisoReporteDocumentoVenta= {Perfiles.ADMINISTRADOR.getId()};
 	private int[] permisoCredito= {Perfiles.ADMINISTRADOR.getId(), Perfiles.CAJERO.getId()};
+	private int[] permisoAsistencia= {Perfiles.ADMINISTRADOR.getId(), Perfiles.ASISTENCIA.getId()};
+	private int[] permisoReporteAsistencia = {Perfiles.ADMINISTRADOR.getId()};
 
 
 	@PostConstruct
@@ -99,8 +101,9 @@ public class NavegacionBean implements Serializable  {
 		subMenuReporteAtencion = validaPermiso(permisoReporteAtencion);
 		subMenuComprasVentas = validaPermiso(permisoComprasVentas);
 		subMenuReporteDocumentoVenta = validaPermiso(permisoReporteDocumentoVenta);
+		subMenuReporteAsistencia = validaPermiso(permisoReporteAsistencia);
 		
-		if(subMenuReporteAtencion || subMenuComprasVentas || subMenuReporteDocumentoVenta) {
+		if(subMenuReporteAtencion || subMenuComprasVentas || subMenuReporteDocumentoVenta || subMenuReporteAsistencia) {
 			menuReportes=true;
 		}
 				
@@ -127,6 +130,14 @@ public class NavegacionBean implements Serializable  {
 		
 		if(subMenuDocumentoVentas || subMenuCredito) {
 			menuVentas=true;
+		}
+				
+		//*******************************************************************************
+		
+		subMenuAsistencia = validaPermiso(permisoAsistencia);
+		
+		if(subMenuAsistencia) {
+			menuAsistencia=true;
 		}
 				
 		//*******************************************************************************
@@ -186,6 +197,13 @@ public class NavegacionBean implements Serializable  {
 	public void getReportesDocumentoVentaPage() {
 		ruta = "modulos/ventas/reportes/reporteDocumentoVenta.xhtml";
 	}
+	public void getAsistenciaAsistenciaPage() {
+		ruta = "modulos/asistencia/procesos/asistencia.xhtml";
+	}
+	public void getAsistenciaReporteAsistenciaPage() {
+		ruta = "modulos/asistencia/procesos/reporteAsistencia.xhtml";
+	}
+	
 
 	
 	public void cerrarSesion() {
@@ -400,6 +418,30 @@ public class NavegacionBean implements Serializable  {
 	}
 	public void setPermisoCredito(int[] permisoCredito) {
 		this.permisoCredito = permisoCredito;
+	}
+	public boolean isMenuAsistencia() {
+		return menuAsistencia;
+	}
+	public void setMenuAsistencia(boolean menuAsistencia) {
+		this.menuAsistencia = menuAsistencia;
+	}
+	public boolean isSubMenuAsistencia() {
+		return subMenuAsistencia;
+	}
+	public void setSubMenuAsistencia(boolean subMenuAsistencia) {
+		this.subMenuAsistencia = subMenuAsistencia;
+	}
+	public boolean isSubMenuReporteAsistencia() {
+		return subMenuReporteAsistencia;
+	}
+	public void setSubMenuReporteAsistencia(boolean subMenuReporteAsistencia) {
+		this.subMenuReporteAsistencia = subMenuReporteAsistencia;
+	}
+	public int[] getPermisoAsistencia() {
+		return permisoAsistencia;
+	}
+	public void setPermisoAsistencia(int[] permisoAsistencia) {
+		this.permisoAsistencia = permisoAsistencia;
 	}
 	
 }

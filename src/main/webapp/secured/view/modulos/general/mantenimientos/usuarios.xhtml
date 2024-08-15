@@ -124,14 +124,20 @@
                     <f:selectItem itemLabel="[-- Ninguno --]" itemValue="#{null}"/>
                     <f:selectItems value="#{usuarioBean.lstPerfil}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
                 </p:selectOneMenu>
-                
-             
-                
-                <h:outputLabel for="estado" value="Estado:" />
+
+				<h:outputLabel value="Controlar Asistencia:" />
+				<p:selectOneMenu value="#{usuarioBean.userSelected.controlarAsistencia}" style="margin:10px">
+					<f:selectItem itemLabel="NO" itemValue="#{false}" />
+					<f:selectItem itemLabel="SI" itemValue="#{true}" />
+				</p:selectOneMenu>
+
+				<h:outputLabel for="estado" value="Estado:" />
                 <p:selectOneMenu id="estado" value="#{usuarioBean.userSelected.estado}" style="margin:10px" >
                     <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
                     <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
                 </p:selectOneMenu>
+                
+                
                     <p:commandButton value="Guardar" actionListener="#{usuarioBean.saveUpdateUser()}" update=":form:idTableUser :formProyecto"/>
                     
             </h:panelGrid>

@@ -16,7 +16,7 @@
             <link rel="shortcut icon" href="./recursos/images/logito.ico"/>
             <title>..:: SISTEMA RESTAURANTE :..</title>                       
             	<p:growl autoUpdate="true" id="growl1" showDetail="true" />
-                
+            <h:outputStylesheet library="primefaces-afternoon" name="theme.css" />
         </h:head>
         <h:body style="font-size: 11px;  " >            
         
@@ -76,10 +76,17 @@
 						
 						</p:submenu>
 						
+						<p:submenu label="Asistencia" rendered="#{navegacionBean.menuAsistencia}">
+							<p:menuitem value="Asistencia" icon="pi pi-check-circle" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getAsistenciaAsistenciaPage()}" rendered="#{navegacionBean.subMenuAsistencia}" />
+						</p:submenu>
+						
 						<p:submenu label="REPORTES" rendered="#{navegacionBean.menuReportes}">
+							<p:menuitem value="Reporte Asistencia" icon="pi pi-upload" ajax="false" update=":contenedor" actionListener="#{navegacionBean.getAsistenciaReporteAsistenciaPage()}" rendered="#{navegacionBean.subMenuReporteAsistencia}" />
+							
 							<p:menuitem value="Atención en mesa" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getProcesoReporteAtencionPage()}" rendered="#{navegacionBean.subMenuReporteAtencion}"/>
 							<p:menuitem value="Compras y Ventas" ajax="false" icon="pi pi-chart-line" update=":contenedor" actionListener="#{navegacionBean.getReporteComprasVentasPage()}" rendered="#{navegacionBean.subMenuComprasVentas}"/>						
 							<p:menuitem value="Reporte Documento de Venta" ajax="false" icon="pi pi-upload" update=":contenedor" actionListener="#{navegacionBean.getReportesDocumentoVentaPage()}" rendered="#{navegacionBean.subMenuReporteDocumentoVenta}"/>
+							
 						</p:submenu>
 						
 					</p:menu>

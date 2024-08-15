@@ -1,0 +1,189 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">REPORTE > REPORTE DE ASISTENCIA</h2>
+		<p:selectOneButton value="#{reporteAsistenciaBean.estado}" unselectable="false">
+			<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+			<f:selectItem itemLabel="Eliminados" itemValue="#{false}" />
+			<p:ajax update=":form:tabView:idTableDet" />
+		</p:selectOneButton>  
+		<p:tabView id="tabView">
+			<p:tab title="Lista de Asistencias">
+			
+				<h:panelGrid id="grid" columns="8" width="30%">
+			
+					<h:outputLabel value="Usuario: " style="text-align:right"/>
+					<p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{reporteAsistenciaBean.usuarioSelected}" converter="#{reporteAsistenciaBean.conversorUsuario}" completeMethod="#{reporteAsistenciaBean.completeUsuario}"  
+		                          var="ase" itemLabel="#{ase.persona.apellidos.concat(' ')}#{ase.persona.nombres}" itemValue="#{ase}" forceSelection="true" > 
+		            	 <p:ajax update=":form:tabView:idTableDet :form:tabView:grid" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+		           	</p:autoComplete>
+			
+					<h:outputLabel for="tipo" value="Tipo:" />
+		            <p:selectOneMenu id="tipo" value="#{reporteAsistenciaBean.tipo}" style="margin:10px" >
+			            <f:selectItem itemLabel="[--TODOS--]" itemValue=""/>
+			            <f:selectItem itemLabel="Entrada" itemValue="E"/>
+			            <f:selectItem itemLabel="Salida" itemValue="S"/>
+			            <p:ajax update=":form:tabView:idTableDet" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+		            </p:selectOneMenu>
+		                
+		            <h:outputLabel value="Fecha inicio:" style="text-align:right"/>
+					<p:datePicker id="idFechaIni" value="#{reporteAsistenciaBean.fechaIni}" >
+						<p:ajax update=":form:tabView:idTableDet :form:tabView:grid idFechaIni" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+					</p:datePicker>
+					
+					<h:outputLabel value="Fecha fin:" style="text-align:right"/>
+					<p:datePicker id="idFechaFin" value="#{reporteAsistenciaBean.fechaFin}" readonlyInput="true" >
+						<p:ajax update=":form:tabView:idTableDet :form:tabView:grid idFechaFin" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+					</p:datePicker>
+					
+					<p:commandButton value="Descargar" rendered="#{reporteAsistenciaBean.mostrarBoton}" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{reporteAsistenciaBean.procesarExcel()}"
+		                         icon="pi pi-file-excel" styleClass="mr-2">
+		            	<p:fileDownload value="#{reporteAsistenciaBean.fileDes}"/> 
+		      		</p:commandButton>
+					
+					<p:commandButton value="Descargar en Planilla" rendered="#{reporteAsistenciaBean.mostrarBoton eq false}" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{reporteAsistenciaBean.procesarExcel()}"
+		                         icon="pi pi-file-excel" styleClass="mr-2">
+		            	<p:fileDownload value="#{reporteAsistenciaBean.fileDes}"/> 
+		      		</p:commandButton>
+		      		
+		      		<p:commandButton value="Descargar Externos" rendered="#{reporteAsistenciaBean.mostrarBoton eq false}" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" actionListener="#{reporteAsistenciaBean.procesarExcelExternos()}"
+		                         icon="pi pi-file-excel" styleClass="mr-2">
+		            	<p:fileDownload value="#{reporteAsistenciaBean.fileDes}"/> 
+		      		</p:commandButton>
+		      		
+		      		<p:commandButton id="botonAuto" value="Auto-generar Registro" actionListener="#{reporteAsistenciaBean.autogenerarRegistroMes}"
+		                         icon="pi pi-arrow-down" styleClass="mr-2" rendered="#{reporteAsistenciaBean.mostrarBoton}" update=":form:tabView:idTableDet" >
+		      		</p:commandButton>
+				</h:panelGrid>
+				
+				<p:dataTable reflow="true"  var="asistencia" id="idTableDet" value="#{reporteAsistenciaBean.lstAsistenciaLazy}"  widgetVar="asistenciaTable" rowIndexVar="row" paginator="true" rows="15" size="small" style="width:100%"
+				emptyMessage="No se encontraron registros." paginatorPosition="bottom" rowKey="#{asistencia.id}" selection="#{reporteAsistenciaBean.asistenciaSelected}" selectionMode="single"> 
+			
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Asistencias</span>
+						</div>
+					</f:facet>
+					<p:ajax event="rowSelect" update="dialogAsistencia" listener="#{reporteAsistenciaBean.updateAsistencia()}" onstart="PF('blockUIWidget').block();" oncomplete="PF('asistenciaNewDialog').show(); PF('blockUIWidget').unblock();" />
+		
+					<p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                    <p:commandLink actionListener="#{reporteAsistenciaBean.newAsistencia()}" update="dialogAsistencia" onstart="PF('blockUIWidget').block();" oncomplete="PF('asistenciaNewDialog').show(); PF('blockUIWidget').unblock();" title="NUEVA ASISTENCIA">
+		                        <p:graphicImage width="50" value="/recursos/images/anadir.png" />
+		
+		                   </p:commandLink>
+		                </f:facet>
+		            </p:column>
+		
+					<p:column width="25px">
+		                   		#{row +1}
+		     		</p:column>
+		     		
+		    		<p:column headerText="Fecha y Hora" sortBy="#{asistencia.hora}" filterMatchMode="contains">
+		    			<h:outputText value="#{reporteAsistenciaBean.convertirHora(asistencia.hora)}" />
+					</p:column>
+					
+					<p:column headerText="Minútos de tardanza" filterMatchMode="contains" style="text-align: center">
+		    			<h:outputText value="#{reporteAsistenciaBean.minutosTardanza(asistencia) eq 0 ? '' : reporteAsistenciaBean.minutosTardanza(asistencia)}" />
+					</p:column>
+		
+					<p:column headerText="Empleado" sortBy="#{asistencia.empleado.person.surnames}" filterMatchMode="contains">
+						<h:outputText value="#{asistencia.empleado.person.surnames} #{asistencia.empleado.person.names}" />
+					</p:column>
+					
+					<p:column headerText="Tipo" sortBy="#{asistencia.tipo}" filterMatchMode="contains">
+						<h:outputText value="#{reporteAsistenciaBean.convertirTipo(asistencia.tipo)}"   style="font-weight: bold;color:#{asistencia.tipo eq 'E'?'green':'blue'}" />
+					</p:column>
+					
+					<p:column headerText="Área" sortBy="#{asistencia.empleado.area.nombre}"
+						filterMatchMode="contains">
+						<h:outputText value="#{asistencia.empleado.area.nombre}" />
+					</p:column>
+					
+					<p:column headerText="Usuario Crea" sortBy="#{asistencia.userCrea.username}"
+						filterMatchMode="contains">
+						<h:outputText value="#{asistencia.userCrea.username}" />
+					</p:column>
+					
+					<p:column headerText="Fecha Crea" sortBy="#{asistencia.fechaCrea}" filterMatchMode="contains">
+		    			<h:outputText value="#{asistencia.fechaCrea eq null ? '' : reporteAsistenciaBean.convertirHora(asistencia.fechaCrea)}" />
+					</p:column>
+					
+					<p:column headerText="Usuario Modifica" sortBy="#{asistencia.userModifica.username}"
+						filterMatchMode="contains">
+						<h:outputText value="#{asistencia.userModifica.username}" />
+					</p:column>
+					
+					<p:column headerText="Fecha Modifica" sortBy="#{asistencia.fechaModifica}" filterMatchMode="contains">
+		    			<h:outputText value="#{asistencia.fechaModifica eq null ? '' : reporteAsistenciaBean.convertirHora(asistencia.fechaModifica)}" />
+					</p:column>
+				
+				</p:dataTable>
+				
+				<p:contextMenu for="idTableDet" >
+			            <p:menuitem value="Eliminar" update=":form:tabView:idTableDet" icon="pi pi-times" action="#{reporteAsistenciaBean.eliminarAsistencia()}" />
+		       	</p:contextMenu>
+			
+			</p:tab>
+			
+		</p:tabView>
+			
+	</h:form>
+	 <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogAsistencia" header="#{reporteAsistenciaBean.tituloDialog}" widgetVar="asistenciaNewDialog" resizable="false" closable="true"
+	       appendTo="@(body)" style="width:auto">
+	       <h:form id="formAsistencia">
+	         	
+				<h:panelGrid id="grid" columns="2">
+					<h:outputLabel  for="assessor"  value="Empleado: " style="text-align:right" />
+					<p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{reporteAsistenciaBean.asistenciaSelected.empleado}"
+						converter="#{reporteAsistenciaBean.conversorEmpleado}" id="assessor" completeMethod="#{reporteAsistenciaBean.completeEmpleado}"
+						var="ase" itemLabel="#{ase.person.surnames.concat(' ')}#{ase.person.names}" itemValue="#{ase}" forceSelection="true">
+						<p:ajax  event="keyup" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+					</p:autoComplete>
+	
+					<h:outputLabel for="tipo" value="Tipo:" />
+					<p:selectOneMenu id="tipo" value="#{reporteAsistenciaBean.asistenciaSelected.tipo}" style="margin:10px">
+						<f:selectItem itemLabel="[--SELECCIONAR--]" itemValue="" />
+						<f:selectItem itemLabel="Entrada" itemValue="E" />
+						<f:selectItem itemLabel="Salida" itemValue="S" />
+						<p:ajax event="keyup" onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+					</p:selectOneMenu>
+	
+					<h:outputLabel value="Fecha:" style="text-align:right" />
+					<p:datePicker value="#{reporteAsistenciaBean.asistenciaSelected.hora}" showTime="true" style="margin:5px" pattern="dd/MM/yyyy hh:mm:ss a" readonlyInput="true">
+						<p:ajax event="keyup"  onstart="PF('blockUIWidget').block();" oncomplete="PF('blockUIWidget').unblock();"/>
+					</p:datePicker>
+					
+					<p:commandButton value="Guardar" actionListener="#{reporteAsistenciaBean.saveAsistencia()}"
+						update=":form:tabView:idTableDet :formAsistencia" 
+						onstart="PF('blockUIWidgetSaveAsistencia').block();" oncomplete="PF('blockUIWidgetSaveAsistencia').unblock();"/>
+
+			</h:panelGrid>
+
+		</h:form>
+	   </p:dialog>
+	   
+	   <pe:blockUI widgetVar="blockUIWidget">
+	       <h:form style="background: white"> 
+	       <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+	       </h:form>
+		        
+	   </pe:blockUI>
+	   
+	   
+	   <pe:blockUI target="dialogAsistencia" widgetVar="blockUIWidgetSaveAsistencia">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+   
+
+</ui:composition>
